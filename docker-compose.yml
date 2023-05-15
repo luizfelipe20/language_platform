@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: language_platform_postgres
+    image: postgres:14-alpine
+    env_file:
+      - ./.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - language_platform-network
+
+  pgadmin:
+    container_name: language_platform_pgadmin
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    env_file:
+      - ./.env
+    ports:
+      - 5051:80
+    networks:
+      - language_platform-network
+
+  app:
+    container_name: language_platform_app
+    build:
+      context: .
+      target: development_build
+    hostname: app
+    stdin_open: true
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - language_platform-network
+
+volumes:
+  pgdata:
+  pgadmin:
+
+networks:
+  language_platform-network:

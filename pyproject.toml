@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "language-platform"
+version = "0.1.0"
+description = ""
+authors = ["luiz.felipe <felipekjs36@gmail.com>"]
+readme = "README.md"
+packages = [{include = "language_platform"}]
+
+[tool.poetry.dependencies]
+python = "3.11.0"
+django = "^4.2.1"
+psycopg2-binary = "^2.9.6"
+gtts = "^2.3.2"
+django-dotenv = "^1.4.2"
+djangorestframework = "^3.14.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
