@@ -4,7 +4,6 @@ from word.models import (
     Translation,
     Word,
     Phrase,
-    GrammaticalClasses,
     Tags
 )
 
@@ -19,6 +18,7 @@ class TranslationAdmin(admin.ModelAdmin):
 class WordAdmin(admin.ModelAdmin):
     list_display = ('writing', 'id')
     search_fields = ('id', 'writing')
+    filter_horizontal = ('translations',)
 
 
 @admin.register(Phrase)
@@ -27,11 +27,7 @@ class PhraseAdmin(admin.ModelAdmin):
     search_fields = ('id', 'term')
 
 
-@admin.register(GrammaticalClasses)
-class GrammaticalClassesAdmin(admin.ModelAdmin):
-    ...
-
-
 @admin.register(Tags)
 class TagsAdmin(admin.ModelAdmin):
-    ...
+    list_display = ('term', 'id')
+    search_fields = ('id', 'term')

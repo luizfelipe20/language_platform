@@ -1,17 +1,6 @@
 import uuid
 from django.db import models
 from word.models import Word
-"""
-fk_phrases
-fk_words
-fk_translations
-written_answer
-audio_answer
-hit_percentage
-created_at = models.DateTimeField(auto_now_add=True)
-updated_at = models.DateTimeField(auto_now=True)
-subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True)
-"""
 
 
 class WritingWordMemorizationTest(models.Model):
@@ -30,5 +19,13 @@ class AudioWordMemorizationTest(models.Model):
     audio = models.FileField(null=True, blank=True)
     answer = models.TextField()
     hit_percentage = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class GPTIssues(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    question = models.TextField()
+    answer = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

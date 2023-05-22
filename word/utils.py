@@ -1,5 +1,5 @@
 from gtts import gTTS
-from deep_translator import MyMemoryTranslator
+from deep_translator import GoogleTranslator
 
 
 def generate_audio(writing, _id):
@@ -10,6 +10,5 @@ def generate_audio(writing, _id):
 
 
 def generate_translations(writing):
-    translated = MyMemoryTranslator(source="en", target="pt").translate(text=writing)
-    print(f"************8translated: {translated} *****************")
+    translated = GoogleTranslator(source="auto", target="pt").translate(text=writing)
     return translated

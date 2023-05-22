@@ -1,5 +1,8 @@
+# https://github.com/seatgeek/thefuzz
 from django.contrib import admin
-from .models import WritingWordMemorizationTest, AudioWordMemorizationTest
+
+from memorization.gpt_api import generates_response
+from .models import WritingWordMemorizationTest, AudioWordMemorizationTest, GPTIssues
 from word.models import Word
 
 
@@ -11,10 +14,15 @@ class WritingWordMemorizationTestAdmin(admin.ModelAdmin):
     def add_view(self, request, form_url="", extra_context=None):
         instance = Word.objects.last()
         _object = WritingWordMemorizationTest.objects.create(**{"word": instance, "text": instance.writing})
-        # input("******************")
         return self.changeform_view(request, str(_object.id), form_url, extra_context)
 
 @admin.register(AudioWordMemorizationTest)
 class AudioWordMemorizationTestAdmin(admin.ModelAdmin):
     list_display = ('word', 'id')
     search_fields = ('id', 'word')
+
+
+@admin.register(GPTIssues)
+class GPTIssuesAdmin(admin.ModelAdmin):
+    list_display = ('id',)
+    search_fields = ('id', 'question')
