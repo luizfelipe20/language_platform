@@ -21,7 +21,3 @@ def generates_response(question):
     answer = query_api(mensagens)
     print("ChatGPT:", f"\n {answer} \n")
     return answer
-
-# debugar = False
-# if debugar:
-#     print("Mensagens", mensagens, type(mensagens))

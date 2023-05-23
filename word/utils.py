@@ -1,3 +1,4 @@
+# https://medium.com/analytics-vidhya/how-to-translate-text-with-python-9d203139dcf5
 from gtts import gTTS
 from deep_translator import GoogleTranslator
 
@@ -11,4 +12,4 @@ def generate_audio(writing, _id):
 
 def generate_translations(writing):
     translated = GoogleTranslator(source="auto", target="pt").translate(text=writing)
-    return translated
+    return str(translated).lower()
