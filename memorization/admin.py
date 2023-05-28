@@ -1,7 +1,7 @@
 # https://github.com/seatgeek/thefuzz
 import random
 from django.contrib import admin
-from .models import WordMemorizationTest, GPTIssues, Challenge
+from .models import ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest, GPTIssues, Challenge
 from word.models import Terms
 from thefuzz import fuzz
 
@@ -48,12 +48,27 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
 
 @admin.register(GPTIssues)
 class GPTIssuesAdmin(admin.ModelAdmin):
-    list_display = ('id',)
-    search_fields = ('id', 'question')
+    list_display = ('id', 'created_at', 'updated_at', 'issue')
+    search_fields = ('id', 'issue')
+    filter_horizontal = ('tags', )
 
 
 @admin.register(Challenge)
 class ChallengesAdmin(admin.ModelAdmin):
     list_display = ('id', 'is_active', 'created_at', 'updated_at')
     search_fields = ('id', 'tags__term')
+    filter_horizontal = ('tags', )
+
+
+@admin.register(ImportTexts)
+class ImportTextsAdmin(admin.ModelAdmin):
+    list_display = ('id', )
+    search_fields = ('id', 'term')
+    filter_horizontal = ('tags', )
+
+
+@admin.register(PhraseGeneratorForTerms)
+class PhraseGeneratorForTermsAdmin(admin.ModelAdmin):
+    list_display = ('id', )
+    search_fields = ('id', 'terms')
     filter_horizontal = ('tags', )

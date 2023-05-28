@@ -1,4 +1,5 @@
 # https://github.com/inteligenciamilgrau/videos_tutoriais/blob/main/ChatGPT_em_Python/chatGPT_em_python.py
+# You are an English teacher and will help me with grammar questions.
 import os
 import openai
 
@@ -15,9 +16,8 @@ def query_api(messages):
     )
     return response.choices[0].message.content
 
-def generates_response(question):
-    mensagens = [{"role": "system", "content": "You are an English teacher and will help me with grammar questions."}]
+def generates_response(question, profile):
+    mensagens = [{"role": "system", "content": f"{profile}"}]
     mensagens.append({"role": "user", "content": str(question)})
     answer = query_api(mensagens)
-    print("ChatGPT:", f"\n {answer} \n")
     return answer
