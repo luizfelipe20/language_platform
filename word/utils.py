@@ -13,7 +13,3 @@ def generate_audio(writing, _id):
 def generate_translations(writing):
     translated = GoogleTranslator(source="auto", target="pt").translate(text=writing)
     return str(translated).lower()
-
-
-def has_numbers(input_string):
-    return any(char.isdigit() for char in input_string)

@@ -30,4 +30,5 @@ class WordAdmin(admin.ModelAdmin):
 class TagsAdmin(admin.ModelAdmin):
     list_display = ('term', 'id', 'created_at', 'updated_at')
     search_fields = ('id', 'term')
+    filter_horizontal = ('tags',)
 

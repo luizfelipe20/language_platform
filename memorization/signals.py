@@ -1,13 +1,17 @@
-from asyncio import sleep
 import re
 import json
 import uuid
 from django.db import models
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
-from word.utils import generate_audio, generate_translations, has_numbers
-from .models import GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms
+from word.utils import generate_audio, generate_translations
+from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
+
+# @receiver(models.signals.pre_save, sender=WordMemorizationTest)
+# def validating_word_memorization_test_duplication(sender, instance, **kwargs):
+#     if WordMemorizationTest.objects.filter(term=instance.term).exists():
+#         raise Exception("Word Memorization Test already registered!") 
 
 
 @receiver(models.signals.post_save, sender=GPTIssues)
@@ -17,11 +21,11 @@ def gpt_issues(sender, instance, created, **kwargs):
     response_gpt = generates_response(instance.issue, instance.profile)    
     _object.update(answer=response_gpt)
         
-    for item in json.loads(response_gpt):
-        if not Terms.objects.filter(text=item["phrase"]).exists(): 
-            _object = Terms.objects.create(**{"text": item["phrase"], "gpt_identifier": str(instance.id)})
-            translation = Translation.objects.create(**{"term": item["translation"], "language": TypePartSpeechChoices.ENGLISH})
-            _object.translations.add(translation)
+    # for item in json.loads(response_gpt):
+    #     if not Terms.objects.filter(text=item["phrase"]).exists(): 
+    #         _object = Terms.objects.create(**{"text": item["phrase"], "gpt_identifier": str(instance.id)})
+    #         translation = Translation.objects.create(**{"term": item["translation"], "language": TypePartSpeechChoices.ENGLISH})
+    #         _object.translations.add(translation)
 
 
 @receiver(models.signals.post_save, sender=Challenge)
@@ -38,18 +42,24 @@ def gpt_issues_tags(sender, instance, action, pk_set, **kwargs):
 
 @receiver(models.signals.post_save, sender=ImportTexts)
 def import_texts(sender, instance, **kwargs):
-    text = re.split('[...?!!!.!]', str(instance.term))
+    sentences = []
+    text = str(instance.term).splitlines()
+    text_remove_acronym_punctuation = [re.sub(r"(?<!\w)([A-Za-z])\.", r"\1", elem) for elem in text]
+    text_separated_by_punctuation = [re.split('[.!\?]', str(elem)) for elem in text_remove_acronym_punctuation]
+    for elems in text_separated_by_punctuation:
+        [sentences.append(item) for item in elems if len(item)]
+                
     terms_list = []
     translation_list = []
     term_translation_through = {}
 
     _reference =  None
 
-    for line in text:
-        prhase = line
+    for sentence in sentences:
 
-        if prhase.strip():
-            term = Terms(**{"text": prhase, "reference": _reference, "pronunciation": generate_audio(prhase, uuid.uuid4().hex)})
+        if sentence:
+            print(sentence)
+            term = Terms(**{"text": sentence.strip(), "reference": _reference, "pronunciation": generate_audio(sentence.strip(), uuid.uuid4().hex)})
             translation = Translation(**{"term": generate_translations(term.text), "language": TypePartSpeechChoices.ENGLISH})
             _reference = term
 
@@ -70,32 +80,48 @@ def import_texts(sender, instance, **kwargs):
 
 
 @receiver(models.signals.post_save, sender=PhraseGeneratorForTerms)
-def phrase_generator_for_terms(sender, instance, **kwargs):
-    words = instance.terms.split(",")
-    verb_tenses = ("present simple", "present continuous", "present perfect", "present perfect continuous", "past simple", "past continuous",
-                   "past perfect", "past perfect continuous", "future simple", "future continuous", "future perfect", "future perfect continuous")
-    base_text_list = []
-    tags_list = []
+def phrase_generator_for_terms(sender, instance, created, **kwargs):
+    terms = instance.terms.split(",")
+    text = instance.base_text.replace("WORDS", instance.terms)
+    
+    for term in terms:
+        if not Tags.objects.filter(term=term).exists():
+            Tags.objects.create(**{"term": term, "language": TypePartSpeechChoices.ENGLISH})
+    
+    response_gpt = generates_response(text, instance.profile)
+    response_gpt_json = "".join(re.findall(r'[\[{},:\s"\w\]]', response_gpt))      
+    PhraseGeneratorForTerms.objects.filter(id=instance.id).update(answer=response_gpt_json)
+    
+    try:
+        start = response_gpt_json.index("[")
+        size = len(response_gpt_json)+1
+        data_json = response_gpt_json[start:size]
+        payload = json.loads(data_json)
+    except Exception as exp:
+        raise Exception(f"Unsupported payload! {exp}") 
+     
+    for item in payload:
+        for tag in instance.tags.all():
+            for sentence in item.get(tag.term, []):                    
+                if not Terms.objects.filter(text=sentence).exists(): 
+                    _object = Terms.objects.create(**{"text": sentence, "gpt_identifier": str(instance.id)})
+                    _tag_word = Tags.objects.filter(term=item["term"]).last()
+                    _object.tags.add(_tag_word)
 
-    for item in words:
-        tag = Tags.objects.create(**{"term": item, "language": TypePartSpeechChoices.ENGLISH})
-        tags_list.append(tag)
+    _objects = Terms.objects.filter(gpt_identifier=instance.id)    
+    for _object in _objects:
+        _object.tags.set(instance.tags.all())
+ 
 
-        for tense in verb_tenses:
-            base_text = f"""Return a list of {instance.amount} short sentences containing the word get, in the {tense} tense and exploring the different meanings that the word get can have. 
-            The list must be in the format of a JSON list, each phrase generated must be assigned as a value to the prhase key inside each JSON element, 
-            add one more translation key and add as value to it the translation of the phrase in Brazilian Portuguese. Be succinct and return only what was requested.""" 
-            base_text_list.append(base_text)
-        tag = Tags.objects.filter(term=tense).first()
-        tags_list.append(tag)
-
-    for text in base_text_list:
-        response_gpt = generates_response(text, instance.profile)  
-        sleep(10)  
-        
-        for item in json.loads(response_gpt):
-            if not Terms.objects.filter(text=item["phrase"]).exists(): 
-                _object = Terms.objects.create(**{"text": item["phrase"], "gpt_identifier": str(instance.id)})
-                translation = Translation.objects.create(**{"term": item["translation"], "language": TypePartSpeechChoices.ENGLISH})
-                _object.translations.add(translation)
-                _object.tags.set(tags_list)
+@receiver(models.signals.post_save, sender=ExtractTextFromPDF)
+def extract_text_from_video(sender, instance, **kwargs):    
+    # https://www.geeksforgeeks.org/extract-text-from-pdf-file-using-python/
+    from PyPDF2 import PdfReader
+    
+    reader = PdfReader(instance.pdf)
+    
+    print(len(reader.pages))
+    
+    for page in reader.pages[13:10]:
+        text = page.extract_text()
+        print(text)

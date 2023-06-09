@@ -48,8 +48,17 @@ class ImportTexts(models.Model):
 class PhraseGeneratorForTerms(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     terms = models.TextField(null=True, blank=True)
+    base_text = models.TextField(null=True, blank=True)
     profile = models.TextField(default="You are an English teacher and will help me with grammar questions.", null=True, blank=True)
     tags = models.ManyToManyField(Tags, related_name='phrase_generator_tags', null=True, blank=True)
-    amount = models.PositiveIntegerField(null=True, blank=True)
+    answer = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ExtractTextFromPDF(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    link = models.URLField(max_length=400, null=True, blank=True)
+    pdf = models.FileField(upload_to="./pdf", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

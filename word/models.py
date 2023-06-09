@@ -11,6 +11,7 @@ class Tags(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     term = models.TextField()
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices)
+    tags = models.ManyToManyField('self', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
