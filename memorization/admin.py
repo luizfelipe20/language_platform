@@ -13,28 +13,29 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
 
     def get_translations(self, obj):
         return "\n".join([translation.term for translation in Terms.objects.filter(id=obj.reference).first().translations.all()])
-        
-    def has_add_permission(self, request, obj=None):
-        challenge = Challenge.objects.filter(is_active=True).last()
-        if challenge:
-            if WordMemorizationTest.objects.filter(challenge=challenge).count() < challenge.amount + 1:
-                return True
-        return False
     
     def get_form(self, request, obj=None, **kwargs):
         form = super(WordMemorizationTestAdmin, self).get_form(request, obj, **kwargs)        
         challenge = Challenge.objects.filter(is_active=True).last()
-        items = Terms.objects.filter(tags__in=list(challenge.tags.all().values_list('id', flat=True)))
-        random_item = random.choice(items)
+
+        if WordMemorizationTest.objects.filter(challenge=challenge).count() < challenge.amount:
+            items = Terms.objects.filter(
+                tags__in=list(challenge.tags.all().values_list('id', flat=True))
+                ).exclude(
+                id__in=list(WordMemorizationTest.objects.filter(challenge=challenge).values_list('reference', flat=True))
+            )
+        else:
+            ids = WordMemorizationTest.objects.filter(challenge=challenge, hit_percentage__gte=90, hit_percentage__lte=100).values_list('reference', flat=True).distinct()
+            reference_ids = WordMemorizationTest.objects.values_list('reference', flat=True).exclude(reference__in=ids)
+            items = Terms.objects.filter(id__in=list(reference_ids))
         
-        form.base_fields['reference'].initial = random_item.id
-
-        form.base_fields['term'].initial = random_item.text or None
-
-        form.base_fields['audio'].initial = random_item.pronunciation or None
-
-        form.base_fields['challenge'].initial = challenge
-
+        if items:
+            random_item = random.choice(items)
+            form.base_fields['reference'].initial = random_item.id
+            form.base_fields['term'].initial = random_item.text or None
+            form.base_fields['audio'].initial = random_item.pronunciation or None
+            form.base_fields['challenge'].initial = challenge
+            
         return form
     
     def save_model(self, request, obj, form, change):
@@ -60,9 +61,12 @@ class GPTIssuesAdmin(admin.ModelAdmin):
 
 @admin.register(Challenge)
 class ChallengesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'is_active', 'created_at', 'updated_at')
+    list_display = ('id', 'is_active', 'amount', 'get_tags', 'created_at', 'updated_at')
     search_fields = ('id', 'tags__term')
     filter_horizontal = ('tags', )
+
+    def get_tags(self, obj):
+        return " - ".join([item.term for item in obj.tags.all()])
 
 
 @admin.register(ImportTexts)

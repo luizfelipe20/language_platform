@@ -8,6 +8,7 @@ from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, Phras
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
 
+
 # @receiver(models.signals.pre_save, sender=WordMemorizationTest)
 # def validating_word_memorization_test_duplication(sender, instance, **kwargs):
 #     if WordMemorizationTest.objects.filter(term=instance.term).exists():
