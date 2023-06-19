@@ -17,7 +17,7 @@ class Challenge(models.Model):
     tags = models.ManyToManyField(Tags, related_name='challenges_tags', null=True, blank=True)
     writing = models.BooleanField(default=False)
     audio = models.BooleanField(default=False)
-    past_conjugation_irregular_verb = models.BooleanField(default=False)
+    phrases_associated_with_term = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     amount = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -48,10 +48,7 @@ class ImportTexts(models.Model):
 class PhraseGeneratorForTerms(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     terms = models.TextField(null=True, blank=True)
-    base_text = models.TextField(null=True, blank=True)
-    profile = models.TextField(default="You are an English teacher and will help me with grammar questions.", null=True, blank=True)
-    tags = models.ManyToManyField(Tags, related_name='phrase_generator_tags', null=True, blank=True)
-    answer = models.TextField(null=True, blank=True)
+    tags = models.ManyToManyField(Tags, related_name='phrase_generator_for_terms', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -29,6 +29,7 @@ RUN pip install poetry
 ADD pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false && poetry config installer.max-workers 10
 RUN poetry install --no-root
+RUN playwright install && playwright install-deps 
 
 # copy project
 COPY . .

@@ -1,12 +1,13 @@
 import re
-import json
 import uuid
 from django.db import models
+from word.data_scraping import get_sentences, get_tags, get_translations
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
 from word.utils import generate_audio, generate_translations
 from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
+from unidecode import unidecode
 
 
 # @receiver(models.signals.pre_save, sender=WordMemorizationTest)
@@ -78,41 +79,7 @@ def import_texts(sender, instance, **kwargs):
         term = Terms.objects.get(id=str(key))    
         term.tags.set(tags)
         term.translations.add(term_translation_through[str(key)])
-
-
-@receiver(models.signals.post_save, sender=PhraseGeneratorForTerms)
-def phrase_generator_for_terms(sender, instance, created, **kwargs):
-    terms = instance.terms.split(",")
-    text = instance.base_text.replace("WORDS", instance.terms)
-    
-    for term in terms:
-        if not Tags.objects.filter(term=term).exists():
-            Tags.objects.create(**{"term": term, "language": TypePartSpeechChoices.ENGLISH})
-    
-    response_gpt = generates_response(text, instance.profile)
-    response_gpt_json = "".join(re.findall(r'[\[{},:\s"\w\]]', response_gpt))      
-    PhraseGeneratorForTerms.objects.filter(id=instance.id).update(answer=response_gpt_json)
-    
-    try:
-        start = response_gpt_json.index("[")
-        size = len(response_gpt_json)+1
-        data_json = response_gpt_json[start:size]
-        payload = json.loads(data_json)
-    except Exception as exp:
-        raise Exception(f"Unsupported payload! {exp}") 
      
-    for item in payload:
-        for tag in instance.tags.all():
-            for sentence in item.get(tag.term, []):                    
-                if not Terms.objects.filter(text=sentence).exists(): 
-                    _object = Terms.objects.create(**{"text": sentence, "gpt_identifier": str(instance.id)})
-                    _tag_word = Tags.objects.filter(term=item["term"]).last()
-                    _object.tags.add(_tag_word)
-
-    _objects = Terms.objects.filter(gpt_identifier=instance.id)    
-    for _object in _objects:
-        _object.tags.set(instance.tags.all())
- 
 
 @receiver(models.signals.post_save, sender=ExtractTextFromPDF)
 def extract_text_from_video(sender, instance, **kwargs):    
@@ -126,3 +93,40 @@ def extract_text_from_video(sender, instance, **kwargs):
     for page in reader.pages[13:10]:
         text = page.extract_text()
         print(text)
+
+
+@receiver(models.signals.post_save, sender=PhraseGeneratorForTerms)
+def phrase_generator_for_terms(sender, instance, created, **kwargs):
+    terms = instance.terms.split(",")
+    tags_translations = {
+        "verbo": "verb",
+        "substantivo": "substantive",
+        "adjetivo": "adjective",
+        "advérbio": "adverb",
+        "conjunção": "conjunction",
+        "pronome": "pronoun",
+        "preposição": "preposition"
+    }
+
+    terms = [unidecode(elem.lower()) for elem in terms]
+
+    for item in terms:
+        if Terms.objects.filter(text=item).exists():
+            raise Exception("Term already registered!") 
+        
+        term = Terms.objects.create(**{"text": item})   
+        raw_tags = get_tags(term)
+        
+        tags = [tags_translations.get(tag) for tag in raw_tags]  
+
+        tags = tags + list(instance.tags.values_list("term", flat=True)) 
+        
+        term.tags.set(Tags.objects.filter(term__in=tags))
+
+        for sentence in get_sentences(term):
+            Terms.objects.create(**{"text": sentence, "reference": term})
+
+        translations = get_translations(term)
+        translations.pop(0)
+        for translation in translations:
+            Translation.objects.create(**{"term": translation, "reference": term, "language": TypePartSpeechChoices.ENGLISH})

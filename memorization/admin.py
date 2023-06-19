@@ -2,7 +2,7 @@
 import random
 from django.contrib import admin
 from .models import ExtractTextFromPDF, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest, GPTIssues, Challenge
-from word.models import Terms
+from word.models import Terms, Translation
 from thefuzz import fuzz
 
 
@@ -12,7 +12,7 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
     search_fields = ('id', 'term')
 
     def get_translations(self, obj):
-        return "\n".join([translation.term for translation in Terms.objects.filter(id=obj.reference).first().translations.all()])
+        return ", \n".join([translation for translation in Translation.objects.filter(reference=obj.reference).values_list("term", flat=True)])
     
     def get_form(self, request, obj=None, **kwargs):
         form = super(WordMemorizationTestAdmin, self).get_form(request, obj, **kwargs)        
@@ -24,6 +24,10 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
                 ).exclude(
                 id__in=list(WordMemorizationTest.objects.filter(challenge=challenge).values_list('reference', flat=True))
             )
+
+            if challenge.phrases_associated_with_term:
+                items = Terms.objects.filter(reference__in=items)
+            
         else:
             ids = WordMemorizationTest.objects.filter(challenge=challenge, hit_percentage__gte=90, hit_percentage__lte=100).values_list('reference', flat=True).distinct()
             reference_ids = WordMemorizationTest.objects.values_list('reference', flat=True).exclude(reference__in=ids)
@@ -39,11 +43,11 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         return form
     
     def save_model(self, request, obj, form, change):
-        translations = Terms.objects.get(id=obj.reference).translations.all()
+        translations = Translation.objects.filter(reference=obj.reference).values_list("term", flat=True)
         percentage = 0
 
         for item in translations:
-            ratio = fuzz.partial_ratio(str(obj.answer).lower(), str(item.term).lower())
+            ratio = fuzz.partial_ratio(str(obj.answer).lower(), str(item).lower())
             if ratio > percentage:
                 percentage = ratio
 
