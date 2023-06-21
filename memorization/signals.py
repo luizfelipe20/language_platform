@@ -8,6 +8,7 @@ from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, Phras
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
 from unidecode import unidecode
+from PyPDF2 import PdfReader
 
 
 # @receiver(models.signals.pre_save, sender=WordMemorizationTest)
@@ -83,9 +84,6 @@ def import_texts(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=ExtractTextFromPDF)
 def extract_text_from_video(sender, instance, **kwargs):    
-    # https://www.geeksforgeeks.org/extract-text-from-pdf-file-using-python/
-    from PyPDF2 import PdfReader
-    
     reader = PdfReader(instance.pdf)
     
     print(len(reader.pages))
@@ -125,8 +123,15 @@ def phrase_generator_for_terms(sender, instance, created, **kwargs):
 
         for sentence in get_sentences(term):
             Terms.objects.create(**{"text": sentence, "reference": term})
-
+        
         translations = get_translations(term)
-        translations.pop(0)
         for translation in translations:
+            if not len(translations[translation]):
+                continue
+            
             Translation.objects.create(**{"term": translation, "reference": term, "language": TypePartSpeechChoices.ENGLISH})
+
+            # for elem_synonym in translations[translation]:
+            #     if elem_synonym != term.text:
+            #         synonym = Terms.objects.create(**{"text": elem_synonym, "reference": term})
+            #         Translation.objects.create(**{"term": translation, "reference": synonym, "language": TypePartSpeechChoices.ENGLISH})

@@ -1,4 +1,3 @@
-# https://medium.com/analytics-vidhya/how-to-translate-text-with-python-9d203139dcf5
 from gtts import gTTS
 from deep_translator import GoogleTranslator
 

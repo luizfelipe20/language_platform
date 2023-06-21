@@ -18,6 +18,7 @@ class Challenge(models.Model):
     writing = models.BooleanField(default=False)
     audio = models.BooleanField(default=False)
     phrases_associated_with_term = models.BooleanField(default=False)
+    multiple_translations = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     amount = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)

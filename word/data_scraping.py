@@ -1,4 +1,3 @@
-# https://github.com/dunossauro/live-de-python/tree/main/codigo/Live222
 from time import sleep
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
@@ -10,47 +9,68 @@ def setup_playwright(instance):
     with sync_playwright() as p:            
         browser = p.chromium.launch()
         page = browser.new_page()
-        page.set_default_timeout(30000)
+        page.set_default_timeout(9000)
         page.goto(f"https://translate.google.com/?hl=pt-BR&tab=TT&sl=en&tl=pt&text={instance.text}&op=translate")
         yield page
         browser.close()
 
 
 def get_sentences(instance): 
-    with setup_playwright(instance) as page:                    
-        locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[2]/div[2]/div[1]')
-        soup = BeautifulSoup(locator.inner_html(), 'html.parser')
-        _list_sentences = []
+    _list_sentences = []
+    try:
+        with setup_playwright(instance) as page:                    
+            locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[2]/div[2]/div[1]')
+            soup = BeautifulSoup(locator.inner_html(), 'html.parser')
+            html = soup.select('div > div')
 
-        html = soup.select('div > div')
-        for elem in html:
-            if not elem.i:
-                _list_sentences.append(elem.get_text())
+            for elem in html:
+                if not elem.i:
+                    _list_sentences.append(elem.get_text())
+        
+            return _list_sentences
+        
+    except Exception as exp:
+        print(f"get_sentences__timeout_error {exp}")
         return _list_sentences
     
 
 def get_translations(instance): 
-    with setup_playwright(instance) as page:         
-        locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[3]/div/div[1]/table')
-        soup = BeautifulSoup(locator.inner_html(), 'html.parser')
-        _list_translations = []
+    _list = {}
+    try:
+        with setup_playwright(instance) as page:         
+            locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[3]/div/div[1]/table')
+            soup = BeautifulSoup(locator.inner_html(), 'html.parser')
+            html_base = soup.select('tr')
 
-        html = soup.select('th > div')
-        for elem in html:
-            if elem.span:
-                _list_translations.append(elem.get_text())
+            for elem in html_base:
+                for item in elem.select('th > div'):
+                    raw_text = item.get_text().lower()
+                    _list[raw_text] = []
+                    
+                for item in elem.select('td ul li'):
+                    _list[raw_text].append(item.get_text().replace(",", "").lower().strip())
+        
+            return _list
+        
+    except Exception as exp:
+        print(f"get_translations__timeout_error {exp}")
+        return _list
     
-        return _list_translations
-
 
 def get_tags(instance): 
-    with setup_playwright(instance) as page:            
-        locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[3]/div/div[1]/table')
-        soup = BeautifulSoup(locator.inner_html(), 'html.parser')
-        _list_tags = []
+    _list_tags = []
+    try:
+        with setup_playwright(instance) as page:            
+            locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[3]/div/div[1]/table')
+            soup = BeautifulSoup(locator.inner_html(), 'html.parser')
+            html = soup.select('th > div > div')
 
-        html = soup.select('th > div > div')
-        for elem in html:
-            if not elem.span:
-                _list_tags.append(elem.get_text())
+            for elem in html:
+                if not elem.span:
+                    _list_tags.append(elem.get_text())
+            
+            return _list_tags
+        
+    except Exception as exp:
+        print(f"get_tags__timeout_error {exp}")
         return _list_tags

@@ -1,5 +1,3 @@
-# https://github.com/inteligenciamilgrau/videos_tutoriais/blob/main/ChatGPT_em_Python/chatGPT_em_python.py
-# You are an English teacher and will help me with grammar questions.
 import os
 import openai
 

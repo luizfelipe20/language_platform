@@ -1,4 +1,3 @@
-# https://github.com/seatgeek/thefuzz
 import random
 from django.contrib import admin
 from .models import ExtractTextFromPDF, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest, GPTIssues, Challenge

@@ -1,5 +1,3 @@
-# https://www.wordreference.com/conj/enverbs.aspx?v=get
-
 from django.contrib import admin
 from word.models import (
     Translation,

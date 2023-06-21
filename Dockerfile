@@ -1,5 +1,3 @@
-# https://github.com/davidtan-tw/poetry-spike/blob/main/Dockerfile
-
 FROM python:3.11.0-slim AS development_build
 
 ARG DJANGO_ENV
