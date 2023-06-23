@@ -1,10 +1,11 @@
 import re
 import uuid
 from django.db import models
-from word.data_scraping import get_sentences, get_tags, get_translations
+from word.crowlers.google_translate import get_sentences, get_tags, get_translations
+from word.crowlers.word_reference import get_conjugation
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
 from word.utils import generate_audio, generate_translations
-from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest
+from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, VerbsConjugation, WordMemorizationTest
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
 from unidecode import unidecode
@@ -135,3 +136,22 @@ def phrase_generator_for_terms(sender, instance, created, **kwargs):
             #     if elem_synonym != term.text:
             #         synonym = Terms.objects.create(**{"text": elem_synonym, "reference": term})
             #         Translation.objects.create(**{"term": translation, "reference": synonym, "language": TypePartSpeechChoices.ENGLISH})
+
+
+@receiver(models.signals.post_save, sender=VerbsConjugation)
+def verbs_conjugation(sender, instance, **kwargs):    
+    verbs = instance.verbs.split(",")
+
+    for item in verbs:
+        if Terms.objects.filter(text=item).exists():
+            raise Exception("Term already registered!") 
+        
+        term = Terms.objects.create(**{"text": item})   
+        term.tags.set(instance.tags.all())
+
+        conjugations = get_conjugation(item)
+        for key in conjugations:
+            for conjugation in conjugations[key]:
+                if conjugation:
+                    print({"text": conjugation, "reference": term})
+                    Terms.objects.create(**{"text": conjugation, "reference": term}) 

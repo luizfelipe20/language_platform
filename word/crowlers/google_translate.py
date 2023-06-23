@@ -1,4 +1,3 @@
-from time import sleep
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from contextlib import contextmanager
@@ -30,7 +29,7 @@ def get_sentences(instance):
             return _list_sentences
         
     except Exception as exp:
-        print(f"get_sentences__timeout_error {exp}")
+        print(f"get_sentences__error: {exp}")
         return _list_sentences
     
 
@@ -53,7 +52,7 @@ def get_translations(instance):
             return _list
         
     except Exception as exp:
-        print(f"get_translations__timeout_error {exp}")
+        print(f"get_translations__error: {exp}")
         return _list
     
 
@@ -72,5 +71,5 @@ def get_tags(instance):
             return _list_tags
         
     except Exception as exp:
-        print(f"get_tags__timeout_error {exp}")
+        print(f"get_tags__error: {exp}")
         return _list_tags

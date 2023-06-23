@@ -60,3 +60,11 @@ class ExtractTextFromPDF(models.Model):
     pdf = models.FileField(upload_to="./pdf", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class VerbsConjugation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    verbs = models.TextField(null=True, blank=True)
+    tags = models.ManyToManyField(Tags, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

@@ -1,6 +1,6 @@
 import random
 from django.contrib import admin
-from .models import ExtractTextFromPDF, ImportTexts, PhraseGeneratorForTerms, WordMemorizationTest, GPTIssues, Challenge
+from .models import ExtractTextFromPDF, ImportTexts, PhraseGeneratorForTerms, VerbsConjugation, WordMemorizationTest, GPTIssues, Challenge
 from word.models import Terms, Translation
 from thefuzz import fuzz
 
@@ -89,3 +89,9 @@ class PhraseGeneratorForTermsAdmin(admin.ModelAdmin):
 @admin.register(ExtractTextFromPDF)
 class ExtractTextFromPDFAdmin(admin.ModelAdmin):
     search_fields = ('id', 'link')
+
+
+@admin.register(VerbsConjugation)
+class VerbsConjugationAdmin(admin.ModelAdmin):
+    search_fields = ('id', 'verbs')
+    list_display = ('id', 'verbs')
