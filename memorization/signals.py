@@ -1,6 +1,7 @@
 import re
 import uuid
 from django.db import models
+from memorization.producer import push_queue, setup_broker
 from word.crowlers.google_translate import get_sentences, get_tags, get_translations
 from word.crowlers.word_reference import get_conjugation
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
@@ -96,6 +97,10 @@ def extract_text_from_video(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=PhraseGeneratorForTerms)
 def phrase_generator_for_terms(sender, instance, created, **kwargs):
+    queue_name = "fila_1"
+    exchange_name = "exchange_1"
+    rabbitmq_instance = setup_broker(queue_name, exchange_name)
+
     terms = instance.terms.split(",")
     tags_translations = {
         "verbo": "verb",
@@ -109,49 +114,29 @@ def phrase_generator_for_terms(sender, instance, created, **kwargs):
 
     terms = [unidecode(elem.lower()) for elem in terms]
 
-    for item in terms:
-        if Terms.objects.filter(text=item).exists():
-            raise Exception("Term already registered!") 
-        
-        term = Terms.objects.create(**{"text": item})   
-        raw_tags = get_tags(term)
-        
+    for item in terms:        
+        raw_tags = get_tags(item)
         tags = [tags_translations.get(tag) for tag in raw_tags]  
-
-        tags = tags + list(instance.tags.values_list("term", flat=True)) 
         
-        term.tags.set(Tags.objects.filter(term__in=tags))
+        _tags = [tag.term for tag in instance.tags.all()]
 
-        for sentence in get_sentences(term):
-            Terms.objects.create(**{"text": sentence, "reference": term})
-        
-        translations = get_translations(term)
-        for translation in translations:
-            if not len(translations[translation]):
-                continue
-            
-            Translation.objects.create(**{"term": translation, "reference": term, "language": TypePartSpeechChoices.ENGLISH})
+        tags += _tags 
 
-            # for elem_synonym in translations[translation]:
-            #     if elem_synonym != term.text:
-            #         synonym = Terms.objects.create(**{"text": elem_synonym, "reference": term})
-            #         Translation.objects.create(**{"term": translation, "reference": synonym, "language": TypePartSpeechChoices.ENGLISH})
+        for tag in tags:
+            if tag:
+                push_queue(rabbitmq_instance, {"term": item, "tag": tag})
 
 
-@receiver(models.signals.post_save, sender=VerbsConjugation)
+@receiver(models.signals.pre_save, sender=VerbsConjugation)
 def verbs_conjugation(sender, instance, **kwargs):    
+    queue_name = "fila_2"
+    exchange_name = "exchange_2"
+    rabbitmq_instance = setup_broker(queue_name, exchange_name)
+
     verbs = instance.verbs.split(",")
 
-    for item in verbs:
-        if Terms.objects.filter(text=item).exists():
-            raise Exception("Term already registered!") 
-        
-        term = Terms.objects.create(**{"text": item})   
-        term.tags.set(instance.tags.all())
+    print(instance.tags.all())
 
-        conjugations = get_conjugation(item)
-        for key in conjugations:
-            for conjugation in conjugations[key]:
-                if conjugation:
-                    print({"text": conjugation, "reference": term})
-                    Terms.objects.create(**{"text": conjugation, "reference": term}) 
+    for item in verbs:
+        for tag in instance.tags.all():
+            push_queue(rabbitmq_instance, {"term": item, "tag": tag.term})

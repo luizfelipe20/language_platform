@@ -95,3 +95,4 @@ class ExtractTextFromPDFAdmin(admin.ModelAdmin):
 class VerbsConjugationAdmin(admin.ModelAdmin):
     search_fields = ('id', 'verbs')
     list_display = ('id', 'verbs')
+    filter_horizontal = ('tags', )

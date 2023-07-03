@@ -12,3 +12,7 @@ def generate_audio(writing, _id):
 def generate_translations(writing):
     translated = GoogleTranslator(source="auto", target="pt").translate(text=writing)
     return str(translated).lower()
+
+
+def text_normalization(term: str):
+    return term.lower().replace(" ", "_").replace("/", "_")
