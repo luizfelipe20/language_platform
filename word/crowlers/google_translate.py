@@ -8,8 +8,8 @@ def setup_playwright(instance):
     with sync_playwright() as p:            
         browser = p.chromium.launch()
         page = browser.new_page()
-        page.set_default_timeout(9000)
-        page.goto(f"https://translate.google.com/?hl=pt-BR&tab=TT&sl=en&tl=pt&text={instance.text}&op=translate")
+        page.goto(f"https://translate.google.com/?hl=pt-BR&tab=TT&sl=en&tl=pt&text={instance}&op=translate")
+        page.wait_for_timeout(5000)              
         yield page
         browser.close()
 
@@ -17,7 +17,7 @@ def setup_playwright(instance):
 def get_sentences(instance): 
     _list_sentences = []
     try:
-        with setup_playwright(instance) as page:                    
+        with setup_playwright(instance) as page:   
             locator = page.locator(f'//html/body/c-wiz/div/div[2]/c-wiz/div[2]/c-wiz/div[2]/c-wiz/div/div/div[2]/div[2]/div[1]')
             soup = BeautifulSoup(locator.inner_html(), 'html.parser')
             html = soup.select('div > div')
