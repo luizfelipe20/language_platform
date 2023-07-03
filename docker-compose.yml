@@ -27,12 +27,25 @@ services:
     networks:
       - language_platform-network
 
-  app:
-    container_name: language_platform_app
+  rabbitmqServer:
+    container_name: rabbitmqServer
+    image: "rabbitmq:3.6-management-alpine"
+    hostname: "rabbitmq-host"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: pass
+    networks:
+      - language_platform-network
+
+  producer:
+    container_name: producer
     build:
       context: .
       target: development_build
-    hostname: app
+    hostname: producer
     stdin_open: true
     volumes:
       - .:/app
@@ -42,7 +55,48 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - rabbitmqServer
     command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - language_platform-network
+  
+  verbs_conjugation_consumer:
+    build:
+      context: .
+      target: development_build
+    hostname: verbs_conjugation_consumer
+    stdin_open: true
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - rabbitmqServer
+    command: bash -c "python manage.py verbs_conjugation_consumer"
+    networks:
+      - language_platform-network
+  
+  phrase_generator_for_terms_consumer:
+    build:
+      context: .
+      target: development_build
+    hostname: phrase_generator_for_terms_consumer
+    stdin_open: true
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - rabbitmqServer
+    command: bash -c "python manage.py phrase_generator_for_terms_consumer"
     networks:
       - language_platform-network
 
