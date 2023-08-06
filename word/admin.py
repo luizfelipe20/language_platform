@@ -32,10 +32,10 @@ class TermsAdmin(admin.ModelAdmin):
     inlines = [TermsInline, TranslationInline]
 
     def get_translations(self, obj):
-        return ",\n".join([item.term for item in Translation.objects.filter(reference=obj)])
+        return "/ ---------- /".join([item.term for item in Translation.objects.filter(reference=obj)])
 
     def get_tags(self, obj):
-        return " - ".join([item.term for item in obj.tags.all()])
+        return "/ ---------- /".join([item.term for item in obj.tags.all()])
 
 
 @admin.register(Tags)

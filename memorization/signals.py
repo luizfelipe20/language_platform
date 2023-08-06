@@ -1,3 +1,4 @@
+import random
 import re
 import uuid
 from django.db import models
@@ -6,7 +7,7 @@ from word.crowlers.google_translate import get_sentences, get_tags, get_translat
 from word.crowlers.word_reference import get_conjugation
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
 from word.utils import generate_audio, generate_translations
-from .models import ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, VerbsConjugation, WordMemorizationTest
+from .models import ChallengeTerm, ExtractTextFromPDF, GPTIssues, Challenge, ImportTexts, PhraseGeneratorForTerms, VerbsConjugation, WordMemorizationRandomTest
 from django.dispatch import receiver
 from memorization.gpt_api import generates_response
 from unidecode import unidecode
@@ -25,18 +26,33 @@ def gpt_issues(sender, instance, created, **kwargs):
 
     response_gpt = generates_response(instance.issue, instance.profile)    
     _object.update(answer=response_gpt)
-        
-    # for item in json.loads(response_gpt):
-    #     if not Terms.objects.filter(text=item["phrase"]).exists(): 
-    #         _object = Terms.objects.create(**{"text": item["phrase"], "gpt_identifier": str(instance.id)})
-    #         translation = Translation.objects.create(**{"term": item["translation"], "language": TypePartSpeechChoices.ENGLISH})
-    #         _object.translations.add(translation)
 
 
 @receiver(models.signals.post_save, sender=Challenge)
-def challenge(sender, instance, **kwargs):
+def challenge(sender, instance, created, **kwargs):
     Challenge.objects.exclude(id=instance.id).update(is_active=False)
 
+
+@receiver(models.signals.m2m_changed, sender=Challenge.tags.through)
+def challenge_m2m(sender, instance, action, pk_set, **kwargs):
+    if action == 'post_add':
+        terms_ids = list(Terms.objects.filter(tags__in=instance.tags.all()).values_list("id", flat=True).distinct("id"))
+
+        references_ids = []
+        if instance.phrases_associated_with_term:
+            references_ids = list(Terms.objects.filter(reference__in=terms_ids).values_list("id", flat=True).distinct("id"))
+
+        terms_ids += references_ids
+
+        list_terms = list(Terms.objects.filter(id__in=terms_ids).values_list("id", flat=True).distinct("id"))
+
+        random_itens = random.sample(list_terms, instance.amount)
+
+        terms = Terms.objects.filter(id__in=random_itens)
+
+        for term in terms:            
+            ChallengeTerm.objects.get_or_create(**{"term": term, "challenge": instance})
+ 
 
 @receiver(models.signals.m2m_changed, sender=GPTIssues.tags.through)
 def gpt_issues_tags(sender, instance, action, pk_set, **kwargs):

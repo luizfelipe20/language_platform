@@ -13,3 +13,9 @@
 # https://medium.com/analytics-vidhya/how-to-translate-text-with-python-9d203139dcf5
 
 # https://github.com/FernandoBLima/python-rabbitmq-docker/tree/main
+
+
+# https://sentence.yourdictionary.com/get
+# https://www.collinsdictionary.com/sentences/english/get-up
+# https://dictionary.cambridge.org/pt/dicionario/ingles-portugues/get-up
+# https://sentencedict.com/

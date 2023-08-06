@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from word.models import Tags
+from word.models import Tags, Terms
 
 class GPTIssues(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -16,7 +16,7 @@ class Challenge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tags = models.ManyToManyField(Tags, related_name='challenges_tags', null=True, blank=True)
     writing = models.BooleanField(default=False)
-    audio = models.BooleanField(default=False)
+    lissen = models.BooleanField(default=False)
     phrases_associated_with_term = models.BooleanField(default=False)
     multiple_translations = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -25,11 +25,32 @@ class Challenge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class WordMemorizationTest(models.Model):
+class ChallengeTerm(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    term = models.ForeignKey(Terms, on_delete=models.SET_NULL, null=True, blank=True)
+    sequence_order = models.PositiveIntegerField(null=True, blank=True)
+    challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class WordMemorizationRandomTest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=100)
     term = models.TextField(null=True, blank=True)
-    audio = models.FileField(null=True, blank=True)
+    lissen = models.FileField(null=True, blank=True)
+    answer = models.TextField(null=True, blank=True)
+    hit_percentage = models.PositiveIntegerField(null=True, blank=True)
+    challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class SentencesInOrderPrecedenceTest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(max_length=100)
+    term = models.TextField(null=True, blank=True)
+    lissen = models.FileField(null=True, blank=True)
     answer = models.TextField(null=True, blank=True)
     hit_percentage = models.PositiveIntegerField(null=True, blank=True)
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
