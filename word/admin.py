@@ -4,6 +4,7 @@ from word.models import (
     Terms,
     Tags
 )
+from django.utils.html import format_html
 
 
 @admin.register(Translation)
@@ -26,13 +27,14 @@ class TranslationInline(admin.TabularInline):
 
 @admin.register(Terms)
 class TermsAdmin(admin.ModelAdmin):
-    list_display = ('text', 'get_translations', 'get_tags', 'created_at', 'updated_at', 'pronunciation', 'id')
+    list_display = ('text', 'get_translations', 'get_tags', 'created_at', 'updated_at', 'id')
     search_fields = ('id', 'text', 'tags__term')
     filter_horizontal = ('tags', )
-    inlines = [TermsInline, TranslationInline]
+    inlines = [TranslationInline]
 
-    def get_translations(self, obj):
-        return "/ ---------- /".join([item.term for item in Translation.objects.filter(reference=obj)])
+    def get_translations(self, obj):        
+        html = [f"<li>{translation}</li>" for translation in Translation.objects.filter(reference=obj).values_list("term", flat=True)]
+        return format_html(f"<ul>{''.join(html)}</ul>")
 
     def get_tags(self, obj):
         return "/ ---------- /".join([item.term for item in obj.tags.all()])
