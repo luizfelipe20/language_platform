@@ -5,17 +5,13 @@ from word.models import Terms, Translation
 from thefuzz import fuzz
 from django.utils.html import format_html
 from django.db.models import Count
-from rangefilter.filters import (
-    DateRangeFilterBuilder,
-    DateTimeRangeFilterBuilder,
-    NumericRangeFilterBuilder,
-    DateRangeQuickSelectListFilterBuilder,
-)
+from rangefilter.filters import DateRangeFilterBuilder
+
 
 @admin.register(WordMemorizationRandomTest)
 class WordMemorizationTestAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_term', 'answer', 'get_translations', 'hit_percentage', 'reference', 'created_at', 'updated_at')
-    search_fields = ('id', 'term', 'reference')
+    search_fields = ('id', 'reference')
     list_filter = ('challenge',)
     list_filter = (
         'challenge',
@@ -48,10 +44,13 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
             return form
         
         random_item = random.choice(items)
+        
         form.base_fields['reference'].initial = random_item.id
         form.base_fields['term'].initial = random_item.text or None
         form.base_fields['challenge'].initial = challenge
-            
+        form.base_fields['challenge'].disabled = True
+        form.base_fields['hit_percentage'].disabled = True
+
         return form
     
     def save_model(self, request, obj, form, change):
