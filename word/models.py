@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from ckeditor.fields import RichTextField
 
 
 class TypePartSpeechChoices(models.TextChoices):
@@ -24,7 +25,7 @@ class Tags(models.Model):
 
 class Terms(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    text = models.TextField()
+    text = RichTextField()
     tags = models.ManyToManyField(Tags, related_name='word_tags', null=True, blank=True)
     obs = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

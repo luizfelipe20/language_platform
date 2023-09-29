@@ -27,11 +27,14 @@ class TranslationInline(admin.TabularInline):
 
 @admin.register(Terms)
 class TermsAdmin(admin.ModelAdmin):
-    list_display = ('text', 'get_translations', 'get_tags', 'created_at', 'updated_at', 'id')
+    list_display = ('id', 'get_text', 'get_translations', 'get_tags', 'created_at', 'updated_at')
     search_fields = ('id', 'text', 'tags__term')
     filter_horizontal = ('tags', )
     inlines = [TranslationInline]
 
+    def get_text(self, obj):
+        return format_html(obj.text)
+    
     def get_translations(self, obj):        
         html = [f"<li>{translation}</li>" for translation in Translation.objects.filter(reference=obj).values_list("term", flat=True)]
         return format_html(f"<ul>{''.join(html)}</ul>")
