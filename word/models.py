@@ -28,6 +28,7 @@ class Terms(models.Model):
     text = RichTextField()
     tags = models.ManyToManyField(Tags, related_name='word_tags', null=True, blank=True)
     obs = models.TextField(null=True, blank=True)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

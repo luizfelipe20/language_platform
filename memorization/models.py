@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from word.models import Tags
+from word.models import Tags, TypePartSpeechChoices
 from ckeditor.fields import RichTextField
 
 
@@ -11,6 +11,7 @@ class Challenge(models.Model):
     is_active = models.BooleanField(default=False)
     number_of_correct_answers = models.PositiveIntegerField(default=10)
     correct_percentage_considered = models.PositiveIntegerField(default=80)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
