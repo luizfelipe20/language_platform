@@ -45,7 +45,8 @@ class TermsAdmin(admin.ModelAdmin):
         return format_html(f"<ul>{''.join(html)}</ul>")
 
     def get_tags(self, obj):
-        return "/ ---------- /".join([item.term for item in obj.tags.all()])
+        html = [f"<li>{item.term}</li>" for item in obj.tags.all()]
+        return format_html(f"<ul>{''.join(html)}</ul>")
 
 
 @admin.register(Tags)
