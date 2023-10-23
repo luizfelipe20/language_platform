@@ -2,7 +2,6 @@ version: "3.9"
 
 services:
   db:
-    container_name: language_platform_postgres
     image: postgres:14-alpine
     env_file:
       - ./.env
@@ -14,12 +13,11 @@ services:
     networks:
       - language_platform-network
 
-  producer:
-    container_name: producer
+  app:
     build:
       context: .
       target: development_build
-    hostname: producer
+    hostname: app
     stdin_open: true
     volumes:
       - .:/app
