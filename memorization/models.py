@@ -6,6 +6,7 @@ from ckeditor.fields import RichTextField
 
 class Challenge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200, null=True, blank=True)
     tags = models.ManyToManyField(Tags, related_name='challenges_tags', null=True, blank=True)
     writing = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -16,7 +17,7 @@ class Challenge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.tags.last()} - {self.created_at.strftime("%d/%m/%Y")}'
+        return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")}'
     
 
 class WordMemorizationRandomTest(models.Model):
