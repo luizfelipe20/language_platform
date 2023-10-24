@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from word.models import Tags, Terms, Translation, TypePartSpeechChoices
+from django.utils.html import format_html
 
 
 class Command(BaseCommand):
@@ -9,34 +10,29 @@ class Command(BaseCommand):
         parser.add_argument("--tag", nargs="+", type=str)
 
     def handle(self, *args, **options): 
-        for tag_name in options.get("tag"):
-            translations = []
-            
+        for tag_name in options.get("tag"):            
             tag = Tags.objects.filter(term=tag_name).last()
 
-            translations = Translation.objects.filter(reference__tags__in=[tag]).order_by('created_at')
+            terms = Terms.objects.filter(tags__in=[tag]).order_by('created_at')
 
-            _dict_translation  = {}
+            for term in terms:
+                print(term.translation_set.all())
 
-            for translation in translations:
-                _dict_translation[str(translation.id)] = {
-                    "reference": translation.reference, 
-                    "translation_term": translation.term, 
-                    "tag": tag
-                }
+                html = (f'<li>{elem.term}</li>' for elem in term.translation_set.all())
 
-            for item in _dict_translation:
-
-                obj, _ = Terms.objects.get_or_create(**{"text": _dict_translation[item]["translation_term"]})
-                obj.tags.add(_dict_translation[item]["tag"])
+                obj, _ = Terms.objects.get_or_create(**{
+                    "text": format_html(f"<ul>{''.join(html)}</ul>"),
+                    "language": TypePartSpeechChoices.PORTUGUESE, 
+                })
+                obj.tags.add(tag)
 
                 Translation.objects.get_or_create(**{
-                    "term": _dict_translation[item]["reference"].text, 
+                    "term": term.text, 
                     "language": TypePartSpeechChoices.ENGLISH, 
                     "reference": obj}
                 )
 
-            if not translations:
+            if not terms:
                 self.stdout.write(
                     self.style.WARNING('No changes were made !!!')
                 )
