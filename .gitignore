@@ -270,3 +270,4 @@ word/audios
 pdf/
 
 staticfiles
+.vercel
