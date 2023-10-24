@@ -68,7 +68,7 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
 
 @admin.register(Challenge)
 class ChallengesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'is_active', 'number_of_correct_answers', 'get_tags', 'created_at', 'updated_at')
+    list_display = ('id', 'name', 'is_active', 'number_of_correct_answers', 'get_tags', 'created_at', 'updated_at')
     search_fields = ('id', 'tags__term')
     filter_horizontal = ('tags',)
 
