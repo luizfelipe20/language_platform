@@ -36,6 +36,7 @@ class TermsAdmin(admin.ModelAdmin):
         'tags',
         ("created_at", DateRangeFilterBuilder()),
     )
+    ordering = ('-created_at',)
 
     def get_text(self, obj):
         return format_html(obj.text)
