@@ -16,8 +16,6 @@ class Command(BaseCommand):
             terms = Terms.objects.filter(tags__in=[tag]).order_by('created_at')
 
             for term in terms:
-                print(term.translation_set.all())
-
                 html = (f'<li>{elem.term}</li>' for elem in term.translation_set.all())
 
                 obj, _ = Terms.objects.get_or_create(**{
