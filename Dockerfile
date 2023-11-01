@@ -1,4 +1,4 @@
-FROM python:3.9.0-slim AS development_build
+FROM python:3.11.6-slim AS development_build
 
 ARG DJANGO_ENV
 
@@ -27,7 +27,7 @@ RUN pip install poetry
 ADD pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false && poetry config installer.max-workers 10
 RUN poetry install --no-root
-# RUN playwright install && playwright install-deps 
+RUN playwright install && playwright install-deps 
 
 # copy project
 COPY . .
