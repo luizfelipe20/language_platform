@@ -10,6 +10,7 @@ class Challenge(models.Model):
     tags = models.ManyToManyField(Tags, related_name='challenges_tags', null=True, blank=True)
     writing = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    random = models.BooleanField(default=False)
     number_of_correct_answers = models.PositiveIntegerField(default=10)
     correct_percentage_considered = models.PositiveIntegerField(default=80)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
