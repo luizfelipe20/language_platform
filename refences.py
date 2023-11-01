@@ -19,3 +19,7 @@
 # https://www.collinsdictionary.com/sentences/english/get-up
 # https://dictionary.cambridge.org/pt/dicionario/ingles-portugues/get-up
 # https://sentencedict.com/
+
+# https://jay-hale.medium.com/django-on-vercel-in-30-minutes-e69eed15b616
+
+# https://aulasdeinglesgratis.net/1800-frases-em-ingles-part-5/
