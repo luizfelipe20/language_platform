@@ -2,7 +2,7 @@ import random
 from django.contrib import admin
 
 from memorization.utils import standardize_text
-from .models import WordMemorizationRandomTest, Challenge
+from .models import HistoricChallenge, WordMemorizationRandomTest, Challenge
 from word.models import Terms, Translation
 from thefuzz import fuzz
 from django.utils.html import format_html
@@ -31,43 +31,59 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
     
     def get_form(self, request, obj=None, **kwargs):
         form = super(WordMemorizationTestAdmin, self).get_form(request, obj, **kwargs)        
-        challenge = Challenge.objects.filter(is_active=True).last()
+        last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).last()
         unavailable_sentences = []
 
-        if challenge.random:
-            items = self._random_search(challenge, unavailable_sentences)
-            selected_item = random.choice(items)
+        if last_item_historic_challenge.random:
+            items = self._random_search(last_item_historic_challenge, unavailable_sentences)
+            try:
+                selected_item = random.choice(items)
+            except IndexError as exc:
+                print(f"get_form: {exc}")
+                return form
         else:
-            selected_item = self._ordered_search(challenge)
+            selected_item = self._ordered_search(last_item_historic_challenge)
 
-        if not items:
+        if not selected_item:
             return form
         
         form.base_fields['reference'].initial = selected_item.id
         form.base_fields['term'].initial = selected_item.text or None
-        form.base_fields['challenge'].initial = challenge
+        form.base_fields['challenge'].initial = last_item_historic_challenge.challenge
         form.base_fields['challenge'].disabled = True
+        form.base_fields['historic_challenge'].initial = last_item_historic_challenge
+        form.base_fields['historic_challenge'].disabled = True
         form.base_fields['hit_percentage'].disabled = True
 
         return form
     
-    def _ordered_search(self, challenge):
+    def _ordered_search(self, last_item_historic_challenge):
         sentences_already_registered = WordMemorizationRandomTest.objects.filter(
-            challenge=challenge, hit_percentage__gt=challenge.correct_percentage_considered
-        ).values('reference').order_by()
+            historic_challenge=last_item_historic_challenge, hit_percentage__gte=last_item_historic_challenge.correct_percentage_considered
+        ).values_list('reference', flat=True)
+
+        item = Terms.objects.filter(
+            tags__in=last_item_historic_challenge.challenge.tags.all(),                         
+            language=last_item_historic_challenge.language
+        ).exclude(id__in=list(sentences_already_registered)).order_by('created_at').first()
+
+        print(f"ITEM: {item} - sentences_already_registered: {sentences_already_registered}")
                 
-        return Terms.objects.filter(tags__in=challenge.tags.all(), language=challenge.language).exclude(id__in=sentences_already_registered).first()  
+        return item 
     
-    def _random_search(self, challenge, unavailable_sentences):
+    def _random_search(self, last_item_historic_challenge, unavailable_sentences):
         sentences_already_registered = WordMemorizationRandomTest.objects.filter(
-            challenge=challenge, hit_percentage__gt=challenge.correct_percentage_considered
+            historic_challenge=last_item_historic_challenge, hit_percentage__gte=last_item_historic_challenge.correct_percentage_considered
         ).values('reference').annotate(total_number_of_hits=Count('reference')).order_by()
                 
         for item in sentences_already_registered:
-            if item.get('total_number_of_hits') >= challenge.number_of_correct_answers:
+            if item.get('total_number_of_hits') >= last_item_historic_challenge.number_of_correct_answers:
                 unavailable_sentences.append(item.get('reference'))
 
-        items = Terms.objects.filter(tags__in=challenge.tags.all(), language=challenge.language).exclude(id__in=unavailable_sentences)    
+        items = Terms.objects.filter(
+            tags__in=last_item_historic_challenge.challenge.tags.all(), 
+            language=last_item_historic_challenge.language
+        ).exclude(id__in=unavailable_sentences)    
 
         return items
 
@@ -86,22 +102,34 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         super(WordMemorizationTestAdmin, self).save_model(request, obj, form, change)
     
     def response_add(self, request, obj):
-        challenge = Challenge.objects.filter(is_active=True).last()
+        last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).last()
 
-        if obj.hit_percentage > 85:
+        if obj.hit_percentage >= last_item_historic_challenge.correct_percentage_considered:
             msg = f"RIGHT ANSWER!!! {obj.reference}"
             self.message_user(request, msg, level=messages.WARNING)
-        if WordMemorizationRandomTest.objects.filter(reference=obj.reference, hit_percentage__gte=85).count() >= challenge.number_of_correct_answers:
+        if WordMemorizationRandomTest.objects.filter(
+            reference=obj.reference, hit_percentage__gte=last_item_historic_challenge.correct_percentage_considered
+            ).count() >= last_item_historic_challenge.number_of_correct_answers:
+            
             msg = f"CHALLENGE COMPLETED FOR SENTENCING: {obj.reference}"
             self.message_user(request, msg, level=messages.WARNING)
         return super(WordMemorizationTestAdmin, self).response_add(request, obj)
 
+
+class HistoricChallengeInline(admin.TabularInline):
+    model = HistoricChallenge
+    extra = 0
+    ordering = ('-created_at',)
+
+
 @admin.register(Challenge)
 class ChallengesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'language', 'random', 'is_active', 'number_of_correct_answers', 'get_tags', 'created_at', 'updated_at')
+    list_display = ('id', 'name', 'is_active', 'get_tags', 'created_at', 'updated_at')
     search_fields = ('id', 'tags__term')
     filter_horizontal = ('tags',)
     ordering = ('-created_at',)
-    
+    inlines = [HistoricChallengeInline]
+        
     def get_tags(self, obj):
-        return " - ".join([item.term for item in obj.tags.all()])
+        html = [f"<li>{item.term}</li>" for item in obj.tags.all()]
+        return format_html(f"<ul>{''.join(html)}</ul>")
