@@ -23,3 +23,11 @@
 # https://jay-hale.medium.com/django-on-vercel-in-30-minutes-e69eed15b616
 
 # https://aulasdeinglesgratis.net/1800-frases-em-ingles-part-5/
+
+# https://stackoverflow.com/questions/6200233/manytomany-field-not-saved-when-using-django-admin
+
+# https://spotintelligence.com/2022/12/19/text-similarity-python/
+
+# https://medium.com/@khiljidanial/using-scikit-llm-for-text-similarity-ee9c13cb4553
+
+# https://skypeenglishclasses.com/english-phrasal-verbs/
