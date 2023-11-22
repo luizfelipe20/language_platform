@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from word.models import Tags, TypePartSpeechChoices
+from word.models import Tags, Terms, TypePartSpeechChoices
 from ckeditor.fields import RichTextField
 
 
@@ -14,7 +14,7 @@ class Challenge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")}'
+        return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
     
 
 class HistoricChallenge(models.Model):
@@ -35,5 +35,27 @@ class WordMemorizationRandomTest(models.Model):
     hit_percentage = models.PositiveIntegerField(null=True, blank=True)
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
     historic_challenge = models.ForeignKey(HistoricChallenge, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class PhraseMaker(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    request = models.TextField(null=True, blank=True)
+    answer = models.TextField(null=True, blank=True)
+    tags = models.ManyToManyField(Tags, related_name='tags_phrase_maker', null=True, blank=True)
+    sentences = models.ManyToManyField(Terms, related_name='sentences_phrase_maker', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
+
+class TranslationGeneratorForSentence(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sentences = models.ForeignKey(PhraseMaker, on_delete=models.SET_NULL, null=True, blank=True)
+    tags = models.ManyToManyField(Tags, null=True, blank=True)
+    request = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

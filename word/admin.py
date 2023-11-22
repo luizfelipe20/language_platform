@@ -10,9 +10,12 @@ from rangefilter.filters import DateRangeFilterBuilder
 
 @admin.register(Translation)
 class TranslationAdmin(admin.ModelAdmin):
-    list_display = ('term', 'id')
-    search_fields = ('id', 'term')
-
+    list_display = ('term', 'id', 'created_at', 'updated_at')
+    search_fields = ('id', 'term', 'reference__id')
+    list_filter = (
+        'reference__tags',
+        ("created_at", DateRangeFilterBuilder()),
+    )
 
 class TermsInline(admin.TabularInline):
     model = Terms
@@ -33,6 +36,7 @@ class TermsAdmin(admin.ModelAdmin):
     filter_horizontal = ('tags', )
     inlines = [TranslationInline]
     list_filter = (
+        'language',
         'tags',
         ("created_at", DateRangeFilterBuilder()),
     )
