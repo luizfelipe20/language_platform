@@ -14,5 +14,9 @@ def generate_translations(writing):
     return str(translated).lower()
 
 
-def text_normalization(term: str):
+def tag_normalization(term: str):
     return term.lower().replace(" ", "_").replace("/", "_")
+
+
+def sentence_normalization(sentence: str):
+    return sentence.strip().replace("<p>&nbsp;</p>","")

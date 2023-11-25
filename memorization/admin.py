@@ -183,10 +183,14 @@ class PhraseMakerAdmin(admin.ModelAdmin):
 
 @admin.register(TranslationGeneratorForSentence)
 class TranslationGeneratorForSentenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'sentences', 'created_at', 'updated_at')
+    list_display = ('id', 'get_tags', 'sentences', 'created_at', 'updated_at')
     search_fields = ('id',)
     filter_horizontal = ('tags',)
     ordering = ('-created_at',)
+
+    def get_tags(self, obj):
+        html = [f"<li>{item.term}</li>" for item in obj.tags.all()]
+        return format_html(f"<ul>{''.join(html)}</ul>")
 
     def save_model(self, request, obj, form, change):
         if form.cleaned_data['tags']:
