@@ -8,6 +8,6 @@ def standardize_text(text):
 
 
 def remove_number_from_text(sentence):
-    pattern = r'[0-9]. '
+    pattern = r'[0-9]{1,2}\.'
     new_string = re.sub(pattern, '', sentence)
-    return new_string
+    return new_string.replace('"', '').replace("-", "").strip()

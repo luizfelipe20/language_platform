@@ -5,7 +5,7 @@ from memorization.gpt_api import sentence_generator
 from memorization.similarity_validation import similarity_comparison
 
 from memorization.utils import remove_number_from_text, standardize_text
-from .models import HistoricChallenge, PhraseMaker, TranslationGeneratorForSentence, WordMemorizationRandomTest, Challenge
+from .models import HistoricChallenge, MultipleChoiceMemorizationTestsOptions, PhraseMaker, TranslationGeneratorForSentence, WordMemorizationRandomTest, Challenge
 from word.models import Terms, Translation, TypePartSpeechChoices
 from django.utils.html import format_html
 from django.db.models import Count
@@ -57,6 +57,10 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         form.base_fields['historic_challenge'].disabled = True
         form.base_fields['hit_percentage'].disabled = True
 
+        if request.method == "GET":
+            sentences_options = self._populate_translation_options(selected_item)        
+            form.base_fields['sentences_options'].initial = sentences_options
+
         return form
     
     def _ordered_search(self, last_item_historic_challenge):
@@ -87,6 +91,32 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
 
         return items
 
+    def _populate_translation_options(self, reference):
+        _sentences_options = MultipleChoiceMemorizationTestsOptions.objects.filter(reference=reference)
+        if _sentences_options.count():
+            return _sentences_options.last().sentences_options
+        
+        sentences = Translation.objects.filter(reference=reference).values_list("term", flat=True)
+        request = "Retorne 15 frases com a mesma estrutura gramatical da frase 'SENTENCE' mas com significados diferentes da frase. Seja sucinto e retorne apenas o foi solicitado.".replace("SENTENCE", sentences[0])
+        result = sentence_generator(request)
+        gpt_senteces = str(result).splitlines()
+
+        list_translations = list(sentences)[:2] + [remove_number_from_text(item) for item in gpt_senteces]
+        random.shuffle(list_translations)
+
+        itens = [f"<li>{item}</li>" for item in list_translations]        
+        list_html =format_html(f"<ul>{''.join(itens)}</ul>")
+
+        try:
+            MultipleChoiceMemorizationTestsOptions.objects.get_or_create(**{
+                "sentences_options": list_html,
+                "reference": reference,
+            })
+        except Exception as exc:
+            print(f"_populate_translation_options__error: {exc}")
+        
+        return list_html
+    
     def save_model(self, request, obj, form, change):
         translations = Translation.objects.filter(reference=obj.reference).values_list("term", flat=True)
         percentage = 0
@@ -122,11 +152,15 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         return super(WordMemorizationTestAdmin, self).response_add(request, obj)
 
     def __increas_translations(self, obj):
-        Translation.objects.get_or_create(**{
-            "term": remove_number_from_text(obj.answer).replace('"', ''),
-            "reference": Terms.objects.get(id=obj.reference),
-            "language": TypePartSpeechChoices.PORTUGUESE, 
-        })        
+        try:
+            Translation.objects.get_or_create(**{
+                "term": remove_number_from_text(obj.answer),
+                "reference": Terms.objects.get(id=obj.reference),
+                "language": TypePartSpeechChoices.PORTUGUESE, 
+            })        
+        except Exception as exc:
+            print(f"__increas_translations__error: {exc}")
+
 
 class HistoricChallengeInline(admin.TabularInline):
     model = HistoricChallenge
@@ -215,9 +249,16 @@ class TranslationGeneratorForSentenceAdmin(admin.ModelAdmin):
         for item in str(result).splitlines():
             try:
                 Translation.objects.get_or_create(**{
-                    "term": remove_number_from_text(item).replace('"', ''),
+                    "term": remove_number_from_text(item),
                     "reference": sentence,
                     "language": TypePartSpeechChoices.PORTUGUESE, 
                 })
             except Exception as exc:
                 print(f"__generates_translations_for_sentences__error: {exc}")
+
+
+@admin.register(MultipleChoiceMemorizationTestsOptions)
+class MultipleChoiceMemorizationTestsOptionsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'created_at', 'updated_at')
+    search_fields = ('id', 'reference__id')
+    ordering = ('-created_at',)
