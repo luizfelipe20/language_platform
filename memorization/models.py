@@ -31,6 +31,7 @@ class WordMemorizationRandomTest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=100)
     term = RichTextField()
+    sentences_options = RichTextField(null=True, blank=True)
     answer = models.TextField(null=True, blank=True)
     hit_percentage = models.PositiveIntegerField(null=True, blank=True)
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
@@ -52,10 +53,19 @@ class PhraseMaker(models.Model):
     def __str__(self):
         return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
 
+
 class TranslationGeneratorForSentence(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sentences = models.ForeignKey(PhraseMaker, on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.ManyToManyField(Tags, null=True, blank=True)
     request = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class MultipleChoiceMemorizationTestsOptions(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.ForeignKey(Terms, on_delete=models.CASCADE, null=True, blank=True)
+    sentences_options = RichTextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
