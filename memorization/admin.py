@@ -60,6 +60,7 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         if request.method == "GET":
             sentences_options = self._populate_translation_options(selected_item)        
             form.base_fields['sentences_options'].initial = sentences_options
+            form.base_fields['sentences_options'].disabled = True
 
         return form
     
@@ -259,6 +260,6 @@ class TranslationGeneratorForSentenceAdmin(admin.ModelAdmin):
 
 @admin.register(MultipleChoiceMemorizationTestsOptions)
 class MultipleChoiceMemorizationTestsOptionsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created_at', 'updated_at')
+    list_display = ('id', 'reference', 'created_at', 'updated_at')
     search_fields = ('id', 'reference__id')
     ordering = ('-created_at',)
