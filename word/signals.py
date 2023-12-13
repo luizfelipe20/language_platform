@@ -9,12 +9,6 @@ def signals_sentence_normalization(sender, instance, **kwargs):
     Terms.objects.filter(id=instance.id).update(text=sentence_normalization(instance.text))
 
 
-@receiver(models.signals.pre_save, sender=Tags)
-def signals_validating_tag_duplication(sender, instance, **kwargs):
-    if Tags.objects.filter(term=instance.term).exists():
-        raise Exception("Tag already registered!") 
-
-
 @receiver(models.signals.post_save, sender=Tags)
 def signals_tag_normalization(sender, instance, **kwargs):
     Tags.objects.filter(id=instance.id).update(term=tag_normalization(instance.term))
