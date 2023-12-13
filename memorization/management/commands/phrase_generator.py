@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from memorization.gpt_api import sentence_generator
 from memorization.models import MultipleChoiceMemorizationTestsOptions
 from memorization.utils import remove_number_from_text
-from word.models import Tags, Terms, Translation, TypePartSpeechChoices
+from word.models import Tags, Terms, Translation
 from django.utils.html import format_html
 
 
@@ -15,9 +15,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options): 
         for tag_name in options.get("tag"):            
-            tag = Tags.objects.filter(term=tag_name).last()
+            tags = Tags.objects.filter(term__contains=tag_name)
 
-            terms = Terms.objects.filter(tags__in=[tag]).order_by('created_at')
+            print(f"tags: {tags}")
+
+            terms = Terms.objects.filter(tags__in=tags).order_by('-created_at')
 
             for term in terms:
                 self._populate_translation_options(term)
@@ -26,7 +28,7 @@ class Command(BaseCommand):
         _sentences_options = MultipleChoiceMemorizationTestsOptions.objects.filter(reference=reference)
         if _sentences_options.count():
             self.stdout.write(
-                self.style.SUCCESS(f"_sentences_options: {_sentences_options.last().sentences_options}")
+                self.style.SUCCESS(f"_sentences_options: {_sentences_options.last().sentences_options} \n")
             )
             return
         
@@ -42,14 +44,19 @@ class Command(BaseCommand):
         list_html =format_html(f"<ul>{''.join(itens)}</ul>")
 
         try:
-            obj, _ = MultipleChoiceMemorizationTestsOptions.objects.get_or_create(**{
-                "sentences_options": list_html,
-                "reference": reference,
-            })
+            if not MultipleChoiceMemorizationTestsOptions.objects.filter(reference=reference).exists():
+                obj, _ = MultipleChoiceMemorizationTestsOptions.objects.get_or_create(**{
+                    "sentences_options": list_html,
+                    "reference": reference,
+                })
 
-            self.stdout.write(
-                self.style.SUCCESS(f"new_sentences_options: {obj} !!!!")
-            )
+                self.stdout.write(
+                    self.style.SUCCESS(f"new_sentences_options: {obj} !!!!")
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(f"already_updated: {reference} !!!!")
+                )
 
         except Exception as exc:
             print(f"_populate_translation_options__error: {exc}")
