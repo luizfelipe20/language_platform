@@ -11,13 +11,18 @@ class Command(BaseCommand):
         parser.add_argument("--tag", nargs="+", type=str)
 
     def handle(self, *args, **options): 
-        for tag_name in options.get("tag"):            
-            tag = Tags.objects.filter(term=tag_name).last()
 
-            sentences_filtered_by_tags = Terms.objects.filter(tags__in=[tag], language=TypePartSpeechChoices.ENGLISH).order_by('-created_at')
+        for tag_name in options.get("tag"):            
+            tags = Tags.objects.filter(term__contains=tag_name)
+            sentences_filtered_by_tags = Terms.objects.filter(tags__in=tags, language=TypePartSpeechChoices.ENGLISH).order_by('-created_at')
+ 
             for obj_sentence in sentences_filtered_by_tags:
                 if not Translation.objects.filter(reference=obj_sentence).exists():
                     self._generates_translations_for_sentences(obj_sentence)
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(f"already_registered: {obj_sentence} !!!!")
+                    )
 
     def _generates_translations_for_sentences(self, obj_sentence):
         request = "Return at least five translations into Brazilian Portuguese of the phrase 'SENTENCE'. Be brief and only return what was requested.".replace("SENTENCE", standardize_text(obj_sentence.text))                

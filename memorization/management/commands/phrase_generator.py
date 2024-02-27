@@ -1,4 +1,5 @@
 import random
+from time import sleep
 from django.core.management.base import BaseCommand
 from memorization.gpt_api import sentence_generator
 from memorization.models import MultipleChoiceMemorizationTestsOptions
@@ -33,10 +34,10 @@ class Command(BaseCommand):
             return
         
         sentences = Translation.objects.filter(reference=reference).values_list("term", flat=True)
-        request = "Retorne 15 frases com a mesma estrutura gramatical da frase 'SENTENCE' mas com significados diferentes da frase. Seja sucinto e retorne apenas o foi solicitado.".replace("SENTENCE", sentences[0])
+        request = "Retorne 18 frases com a mesma estrutura gramatical da frase 'SENTENCE' mas com significados diferentes da frase. Seja sucinto e retorne apenas o foi solicitado.".replace("SENTENCE", sentences[0])
         result = sentence_generator(request)
         gpt_senteces = str(result).splitlines()
-
+        
         list_translations = list(sentences)[:2] + [remove_number_from_text(item) for item in gpt_senteces]
         random.shuffle(list_translations)
 
