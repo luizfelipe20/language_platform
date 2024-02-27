@@ -11,6 +11,7 @@ from django.utils.html import format_html
 from django.db.models import Count
 from rangefilter.filters import DateRangeFilterBuilder
 from django.contrib import messages
+from django import forms
 
 
 @admin.register(WordMemorizationRandomTest)
@@ -261,5 +262,5 @@ class TranslationGeneratorForSentenceAdmin(admin.ModelAdmin):
 @admin.register(MultipleChoiceMemorizationTestsOptions)
 class MultipleChoiceMemorizationTestsOptionsAdmin(admin.ModelAdmin):
     list_display = ('id', 'reference', 'created_at', 'updated_at')
-    search_fields = ('id', 'reference__id')
+    search_fields = ('id', 'reference__id', 'reference__tags__term')
     ordering = ('-created_at',)

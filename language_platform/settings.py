@@ -112,4 +112,12 @@ CKEDITOR_CONFIGS = {
         'height': 'auto',
         'width': 'auto',
     },
+    'term_ckeditor': {
+        'height': '60',
+        'width': 'auto',
+    },
+    'sentences_options_ckeditor': {
+        'height': '450',
+        'width': 'auto',
+    },
 }
