@@ -30,8 +30,8 @@ class HistoricChallenge(models.Model):
 class WordMemorizationRandomTest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=100)
-    term = RichTextField()
-    sentences_options = RichTextField(null=True, blank=True)
+    term = RichTextField(config_name='term_ckeditor')
+    sentences_options = RichTextField(null=True, blank=True, config_name='sentences_options_ckeditor')
     answer = models.TextField(null=True, blank=True)
     hit_percentage = models.PositiveIntegerField(null=True, blank=True)
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
