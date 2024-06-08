@@ -52,3 +52,30 @@ class Translation(models.Model):
 
     def __str__(self):
         return f'{self.term} - {self.id}'
+
+
+class Word(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    definition = models.TextField(null=True, blank=True)
+    part_of_speech = models.CharField(max_length=100, null=True, blank=True)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [('name',)]
+
+    def __str__(self):
+        return f'{self.name} - {self.id}'
+    
+
+class WordTerm(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    word = models.ForeignKey(Word, on_delete=models.SET_NULL, null=True, blank=True)
+    term = models.ForeignKey(Terms, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'
