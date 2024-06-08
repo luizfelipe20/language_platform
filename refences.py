@@ -31,3 +31,5 @@
 # https://medium.com/@khiljidanial/using-scikit-llm-for-text-similarity-ee9c13cb4553
 
 # https://skypeenglishclasses.com/english-phrasal-verbs/
+
+# https://www.datacamp.com/pt/tutorial/how-to-use-the-openai-text-to-speech-api

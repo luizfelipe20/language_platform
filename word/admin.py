@@ -2,7 +2,8 @@ from django.contrib import admin
 from word.models import (
     Translation,
     Terms,
-    Tags
+    Tags,
+    Word
 )
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
@@ -59,4 +60,10 @@ class TagsAdmin(admin.ModelAdmin):
     list_display = ('term', 'id', 'created_at', 'updated_at')
     search_fields = ('id', 'term')
     filter_horizontal = ('tags',)
+
+
+@admin.register(Word)
+class WordAdmin(admin.ModelAdmin):
+    list_display = ('name', 'id', 'created_at', 'updated_at')
+    search_fields = ('id', 'name')
 

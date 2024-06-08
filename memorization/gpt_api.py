@@ -16,9 +16,6 @@ def sentence_generator(question):
     mensagens.append({"role": "user", "content": question})
     try:
         answer = query_api(mensagens)
-        
-        print(f"sentence_generator: {answer}")
-
         return answer
     except Exception as exc:
         print(f"openai exception: {exc}")

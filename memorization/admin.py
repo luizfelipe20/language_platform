@@ -135,7 +135,7 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         super(WordMemorizationTestAdmin, self).save_model(request, obj, form, change)
     
     def response_add(self, request, obj):
-        last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).last()
+        last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).order_by('created_at').last()
 
         if obj.hit_percentage >= last_item_historic_challenge.correct_percentage_considered:
             msg = f"RIGHT ANSWER!!! {obj.reference}"
@@ -151,6 +151,7 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
         if number_of_times_repeated >= last_item_historic_challenge.number_of_correct_answers:
             msg = f"CHALLENGE COMPLETED FOR SENTENCING: {obj.reference}"
             self.message_user(request, msg, level=messages.WARNING)
+
         return super(WordMemorizationTestAdmin, self).response_add(request, obj)
 
     def __increas_translations(self, obj):
@@ -167,8 +168,8 @@ class WordMemorizationTestAdmin(admin.ModelAdmin):
 class HistoricChallengeInline(admin.TabularInline):
     model = HistoricChallenge
     extra = 0
-    ordering = ('-created_at',)
-
+    ordering = ('created_at',)
+    
 
 @admin.register(Challenge)
 class ChallengesAdmin(admin.ModelAdmin):
