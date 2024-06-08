@@ -27,7 +27,10 @@ RUN pip install poetry
 ADD pyproject.toml poetry.lock /app/
 RUN poetry config virtualenvs.create false && poetry config installer.max-workers 10
 RUN poetry install --no-root
-RUN playwright install && playwright install-deps 
+RUN python -m spacy download en_core_web_lg
 
-# copy project
-COPY . .
+COPY . /app/
+
+# RUN python manage.py collectstatic --no-input
+
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "language_platform.wsgi:application"]
