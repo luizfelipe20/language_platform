@@ -10,14 +10,14 @@ class TypePartSpeechChoices(models.TextChoices):
 
 class Tags(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    term = models.TextField()
+    term = models.CharField(max_length=200, null=True, blank=True)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     tags = models.ManyToManyField('self', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = [('term',)]
+    # class Meta:
+    #     unique_together = [('term',)]
 
     def __str__(self):
         return f'{self.term}'
@@ -36,7 +36,7 @@ class Terms(models.Model):
         unique_together = [('text',)]
 
     def __str__(self):
-        return f'{self.text} - {self.id}'
+        return f'{self.id}'
     
 
 class Translation(models.Model):
@@ -63,8 +63,8 @@ class Word(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = [('name',)]
+    # class Meta:
+    #     unique_together = [('name',)]
 
     def __str__(self):
         return f'{self.name} - {self.id}'

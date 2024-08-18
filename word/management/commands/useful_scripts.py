@@ -1,5 +1,6 @@
 import re
-from word.models import Terms, Word
+from memorization.models import Options, WordMemorizationRandomTest
+from word.models import Tags, Terms, Translation, Word
 from memorization.utils import standardize_text
 from django.core.management.base import BaseCommand
 
@@ -18,7 +19,12 @@ class Command(BaseCommand):
             1: self._regex_based_removal,
             2: self._removal_malformed_sentences,
             3: self._remove_html_tags,
-            4: self._remove_all_records_from_word_table
+            4: self._remove_all_records_from_Word_table,
+            5: self._remove_all_records_from_WordMemorizationRandomTest_table,
+            6: self._remove_all_records_from_Terms_table,
+            7: self._remove_all_records_from_Translation_table,
+            8: self._remove_all_records_from_Tags_table,
+            9: self._remove_all_records_from_Options_table
         }
 
         _rules[options.get('option')]()
@@ -58,5 +64,20 @@ class Command(BaseCommand):
             except Exception as exp:
                 print(f'_remove_html_tags__error: {elem.id} -> {exp}')
     
-    def _remove_all_records_from_word_table(self):
+    def _remove_all_records_from_Word_table(self):
         Word.objects.all().delete()
+    
+    def _remove_all_records_from_WordMemorizationRandomTest_table(self):
+        WordMemorizationRandomTest.objects.all().delete()
+    
+    def _remove_all_records_from_Terms_table(self):
+        Terms.objects.all().delete()
+    
+    def _remove_all_records_from_Translation_table(self):
+        Translation.objects.all().delete()
+    
+    def _remove_all_records_from_Tags_table(self):
+        Tags.objects.all().delete()
+
+    def _remove_all_records_from_Options_table(self):
+        Options.objects.all().delete()

@@ -1,28 +1,29 @@
-import random
 from django.db import models
-from word.models import Terms
-from .models import Challenge
+from word.models import Terms, Translation
+from .models import Challenge, HistoricChallenge, Options, UnavailableItem, WordMemorizationRandomTest
 from django.dispatch import receiver
 
 
 @receiver(models.signals.post_save, sender=Challenge)
-def challenge(sender, instance, created, **kwargs):
+def post_save_challenge(sender, instance, created, **kwargs):
     Challenge.objects.exclude(id=instance.id).update(is_active=False)
 
 
-# @receiver(models.signals.m2m_changed, sender=Challenge.tags.through)
-# def challenge_m2m(sender, instance, action, pk_set, **kwargs):
-#     if action == 'post_add':
-#         terms_ids = list(Terms.objects.filter(tags__in=instance.tags.all()).values_list("id", flat=True).distinct("id"))
+@receiver(models.signals.post_save, sender=HistoricChallenge)
+def post_save_historic_challenge(sender, instance, created, **kwargs):
+    items = Terms.objects.filter(
+        tags__in=instance.challenge.tags.all(), 
+        language=instance.language
+    )
+    UnavailableItem.objects.filter(reference__in=items).delete()
+    print("PASSOU AQUI!!!!!!!!!!!!!")
 
-#         references_ids = []
-#         if instance.phrases_associated_with_term:
-#             references_ids = list(Terms.objects.filter(reference__in=terms_ids).values_list("id", flat=True).distinct("id"))
 
-#         terms_ids += references_ids
-
-#         list_terms = list(Terms.objects.filter(id__in=terms_ids).values_list("id", flat=True).distinct("id"))
-
-#         random_itens = random.sample(list_terms, instance.amount)
-
-#         terms = Terms.objects.filter(id__in=random_itens)
+@receiver(models.signals.post_save, sender=Options)
+def post_save_options(sender, instance, created, **kwargs):
+    if instance.selected:
+        _reference = instance.word_memorization_random_test.reference
+        translations = list(Translation.objects.filter(reference=_reference).values_list("term", flat=True))
+        
+        if instance.option in translations:
+            WordMemorizationRandomTest.objects.filter(id=instance.word_memorization_random_test.id).update(is_true=True)

@@ -33,3 +33,5 @@
 # https://skypeenglishclasses.com/english-phrasal-verbs/
 
 # https://www.datacamp.com/pt/tutorial/how-to-use-the-openai-text-to-speech-api
+
+# https://chase-seibert.github.io/blog/2010/05/20/django-manytomanyfield-on-modelform-as-checkbox-widget.html
