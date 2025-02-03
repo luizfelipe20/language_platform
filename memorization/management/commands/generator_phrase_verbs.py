@@ -3,7 +3,7 @@ import random
 from django.core.management.base import BaseCommand
 from memorization.gpt_api import sentence_generator
 from memorization.models import MultipleChoiceMemorizationTestsOptions
-from word.models import Tags, Terms, Word, Translation, TypePartSpeechChoices
+from word.models import Tag, Term, Token, Translation, TypePartSpeechChoices
 
 
 class Command(BaseCommand):
@@ -15,8 +15,13 @@ class Command(BaseCommand):
             linhas = file.readlines()    
             _dict_phrasal_verbs = {}
 
-            for _phrasal_verb in linhas[:5]:
+            for _phrasal_verb in linhas[:3]:
                 phrasal_verb = _phrasal_verb.strip()
+
+                if Term.objects.filter(tags__in=[phrasal_verb]).exists():
+                    print(f"Já inserido: {phrasal_verb}")
+                    continue
+
                 request = f"""
                     Act as an English grammar teacher, return a list in csv format without header with 6 example sentences 
                     exploring the different meanings of the phrasal verb {phrasal_verb}. Be succinct and only return what was requested. 
@@ -30,14 +35,14 @@ class Command(BaseCommand):
 
     def _get_definition(self, elem):
         request = f"""
-            Act like an English teacher and return the most common definitions for the phrasal verb {elem}. Please answer in Brazilian Portuguese 
+            Act like an English teacher and list all the meanings of the phrasal verb: {elem}. Please answer in Brazilian Portuguese. 
         """
         _result = sentence_generator(request)
-        if not Word.objects.filter(**{
+        if not Token.objects.filter(**{
                 "name": elem, 
                 "part_of_speech": "phrasal verb"
             }).exists():
-            obj = Word.objects.create(
+            obj = Token.objects.create(
                 **{
                     "name": elem, 
                     "definition": _result, 
@@ -45,17 +50,17 @@ class Command(BaseCommand):
                 }
             )
             return obj
-        obj = Word.objects.filter(name=elem).last()
+        obj = Token.objects.filter(name=elem).last()
         return obj
 
     def _get_tag(self, elem):
-        if not Tags.objects.filter(term=elem).exists():
-            tag = Tags.objects.create(
+        if not Tag.objects.filter(term=elem).exists():
+            tag = Tag.objects.create(
                 **{"term": elem}
             )
             return tag
 
-        tag = Tags.objects.filter(term=elem).last()
+        tag = Tag.objects.filter(term=elem).last()
         return tag
     
     def _get_translations(self, _list):
@@ -86,8 +91,8 @@ class Command(BaseCommand):
             tag = self._get_tag(elem)
 
             for sentence in _dict_phrasal_verbs[elem]:
-                url = f"http://localhost:8000/admin/word/word/{definition.id}/change/"
-                sentence_html = f"<a href='{url}' target='_blank'><span>{sentence}</span></a>"
+                url = f"http://localhost:8000/admin/word/token/{definition.id}/change/"
+                sentence_html = f"<a href='{url}' target='_blank'>{sentence}</a>"
                 
                 _list_results.append({
                     'tag': tag,
@@ -115,17 +120,17 @@ class Command(BaseCommand):
         _results = []
         for elem in _list:
             try:
-                if not Terms.objects.filter(**{
+                if not Term.objects.filter(**{
                     "text": elem.get("sentence_html"),
                     "language": TypePartSpeechChoices.ENGLISH, 
                 }).exists():
-                    sentence_obj = Terms.objects.create(**{
+                    sentence_obj = Term.objects.create(**{
                         "text": elem.get("sentence_html"),
                         "language": TypePartSpeechChoices.ENGLISH, 
                     })
                     sentence_obj.tags.add(elem.get("tag"))
                 else:
-                    sentence_obj = Terms.objects.filter(**{
+                    sentence_obj = Term.objects.filter(**{
                         "text": elem.get("sentence_html"),
                         "language": TypePartSpeechChoices.ENGLISH, 
                     })
@@ -141,7 +146,7 @@ class Command(BaseCommand):
             _translations = list(Translation.objects.filter(reference=elem.get('obj')).values_list("term", flat=True))
 
             if len(_translations) == 0:
-                Terms.objects.get(id=elem.get('obj').id).delete()
+                Term.objects.get(id=elem.get('obj').id).delete()
                 continue
 
             _request = f"""

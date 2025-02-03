@@ -1,5 +1,5 @@
 from django.db import models
-from word.models import Terms, Translation
+from word.models import Term, Translation
 from .models import Challenge, HistoricChallenge, Options, UnavailableItem, WordMemorizationRandomTest
 from django.dispatch import receiver
 
@@ -11,7 +11,7 @@ def post_save_challenge(sender, instance, created, **kwargs):
 
 @receiver(models.signals.post_save, sender=HistoricChallenge)
 def post_save_historic_challenge(sender, instance, created, **kwargs):
-    items = Terms.objects.filter(
+    items = Term.objects.filter(
         tags__in=instance.challenge.tags.all(), 
         language=instance.language
     )

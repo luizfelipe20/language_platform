@@ -1,7 +1,7 @@
 import random
 from django.contrib import admin
 from .models import HistoricChallenge, MultipleChoiceMemorizationTestsOptions, UnavailableItem, WordMemorizationRandomTest, Challenge, Options
-from word.models import Tags, Terms, Translation
+from word.models import Tag, Term, Translation
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
 from django.forms import Textarea
@@ -34,7 +34,10 @@ class WordMemorizationRandomTestAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).last()
-        items = Terms.objects.filter(
+        if not last_item_historic_challenge:
+            return super().get_queryset(request)
+        
+        items = Term.objects.filter(
             tags__in=last_item_historic_challenge.challenge.tags.all(), 
             language=last_item_historic_challenge.language
         )
@@ -69,14 +72,14 @@ class WordMemorizationRandomTestAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if obj.needs_reinforcement:
-            term = Terms.objects.get(id=obj.reference.id)
-            tag = Tags.objects.get(term="Study Again")
+            term = Term.objects.get(id=obj.reference.id)
+            tag = Tag.objects.get(term="Study Again")
             term.tags.add(tag)
 
         last_item_historic_challenge = HistoricChallenge.objects.filter(challenge__is_active=True).last()
         unavailable_items = list(UnavailableItem.objects.values_list("reference__id", flat=True))
 
-        available_items = Terms.objects.filter(
+        available_items = Term.objects.filter(
             tags__in=last_item_historic_challenge.challenge.tags.all(), 
             language=last_item_historic_challenge.language
         ).exclude(id__in=unavailable_items)

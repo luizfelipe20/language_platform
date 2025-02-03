@@ -1,9 +1,9 @@
 from django.contrib import admin
 from word.models import (
     Translation,
-    Terms,
-    Tags,
-    Word
+    Term,
+    Tag,
+    Token
 )
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
@@ -18,11 +18,11 @@ class TranslationAdmin(admin.ModelAdmin):
         ("created_at", DateRangeFilterBuilder()),
     )
 
-class TermsInline(admin.TabularInline):
-    model = Terms
+class TermInline(admin.TabularInline):
+    model = Term
     extra = 0
     show_change_link = True
-    exclude = ["tags", "obs"]
+    exclude = ["tag", "obs"]
 
 
 class TranslationInline(admin.TabularInline):
@@ -30,10 +30,10 @@ class TranslationInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(Terms)
-class TermsAdmin(admin.ModelAdmin):
+@admin.register(Term)
+class TermAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_text', 'get_translations', 'get_tags', 'created_at', 'updated_at')
-    search_fields = ('id', 'text', 'tags__term')
+    search_fields = ('id', 'text', 'tag__term')
     filter_horizontal = ('tags', )
     inlines = [TranslationInline]
     list_filter = (
@@ -55,15 +55,15 @@ class TermsAdmin(admin.ModelAdmin):
         return format_html(f"<ul>{''.join(html)}</ul>")
 
 
-@admin.register(Tags)
-class TagsAdmin(admin.ModelAdmin):
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
     list_display = ('term', 'id', 'created_at', 'updated_at')
     search_fields = ('id', 'term')
     filter_horizontal = ('tags',)
 
 
-@admin.register(Word)
-class WordAdmin(admin.ModelAdmin):
+@admin.register(Token)
+class TokenAdmin(admin.ModelAdmin):
     list_display = ('name', 'id', 'created_at', 'updated_at')
     search_fields = ('id', 'name')
 
