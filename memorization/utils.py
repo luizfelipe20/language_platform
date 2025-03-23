@@ -1,6 +1,10 @@
 import re
 
 
+def remove_tags_html(text):
+    return re.sub(r'<.*?>', '', text)
+
+
 def standardize_text(text):
     pattern = re.compile('<.*?>')
     result = re.sub(pattern, '', text)   

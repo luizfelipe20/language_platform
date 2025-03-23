@@ -1,6 +1,7 @@
 from django.contrib import admin
 from word.models import (
     Translation,
+    ShortText,
     Term,
     Tag,
     Token
@@ -66,4 +67,9 @@ class TagAdmin(admin.ModelAdmin):
 class TokenAdmin(admin.ModelAdmin):
     list_display = ('name', 'id', 'created_at', 'updated_at')
     search_fields = ('id', 'name')
+
+
+@admin.register(ShortText)
+class ShortTextAdmin(admin.ModelAdmin):
+    list_display = ('id', 'created_at', 'updated_at')
 

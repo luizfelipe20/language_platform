@@ -1,7 +1,10 @@
 import random
 from django.contrib import admin
-from .models import HistoricChallenge, MultipleChoiceMemorizationTestsOptions, UnavailableItem, WordMemorizationRandomTest, Challenge, Options
-from word.models import Tag, Term, Translation
+
+from memorization.utils import remove_tags_html
+from .models import (HistoricChallenge, MultipleChoiceMemorizationTestsOptions, UnavailableItem, 
+WordMemorizationRandomTest, Challenge, Options, ChallengeShortText, ShortTextMemorizationTest)
+from word.models import ShortText, Tag, Term
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
 from django.forms import Textarea
@@ -150,3 +153,23 @@ class OptionAdmin(admin.ModelAdmin):
 @admin.register(UnavailableItem)
 class UnavailableItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'reference', 'created_at', 'updated_at')
+
+
+@admin.register(ChallengeShortText)
+class ChallengeShortTextAdmin(admin.ModelAdmin):
+    list_display = ('id', 'created_at', 'updated_at')
+
+
+@admin.register(ShortTextMemorizationTest)
+class ShortTextMemorizationTestsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'correct', 'created_at', 'updated_at')
+
+    def save_model(self, request, obj, form, change):
+        text_1 = remove_tags_html(obj.text)
+        text_2 = remove_tags_html(ShortText.objects.get(id=obj.reference.id).text)
+
+        obj.correct = False
+        if text_1 in text_2:
+            obj.correct = True
+
+        super().save_model(request, obj, form, change)

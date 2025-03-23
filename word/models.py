@@ -79,3 +79,18 @@ class WordTerm(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class ShortText(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    text = RichTextField()
+    translate = RichTextField(null=True, blank=True)
+    audio = models.FileField(upload_to='audios/', null=True, blank=True) 
+    scrambled_text = RichTextField(null=True, blank=True)
+    tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'

@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from word.models import Tag, Term, TypePartSpeechChoices
+from word.models import Tag, Term, ShortText, TypePartSpeechChoices
 from ckeditor.fields import RichTextField
 
 
@@ -15,6 +15,19 @@ class Challenge(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
+
+
+class ChallengeShortText(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    short_texts = models.ManyToManyField(ShortText, null=True, blank=True)
+    writing = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'
     
 
 class HistoricChallenge(models.Model):
@@ -60,3 +73,18 @@ class MultipleChoiceMemorizationTestsOptions(models.Model):
     sentences_options = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class ShortTextMemorizationTest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.ForeignKey(ShortText, on_delete=models.CASCADE, null=True, blank=True)
+    scrambled_text = RichTextField(null=True, blank=True)
+    audio = models.FileField(upload_to='audios/', null=True, blank=True) 
+    text = RichTextField(null=True, blank=True)
+    correct = models.BooleanField(default=False)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'
