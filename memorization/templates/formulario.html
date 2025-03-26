@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Estilização do Kanban */
+        .kanban-board {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .column-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .column {
+            width: 100%;
+            max-width: 100%;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .column h2 {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        /* Cards lado a lado */
+        .card-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            background: #433f3f59;
+            color: #050000;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            min-width: 100px;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .submit-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board">
+        <div class="column-container">
+            <div class="column">
+                <div class="card-container">
+                    <h2>Player de Áudio</h2>
+                    <audio id="meuAudio" controls>
+                        <source src="{{ audio.url }}" type="audio/mp3">
+                        Seu navegador não suporta o elemento de áudio.
+                    </audio>
+                    <br>
+                    <!-- Botões Personalizados -->
+                    <button onclick="retroceder()"> 5s << </button>
+                    <button onclick="avancar()"> 5s >> </button>
+
+                </div>
+            </div>
+            <div class="column" id="done">
+                <h2>Concluído</h2>
+                <div class="card-container"></div>
+            </div>
+            <div class="column" id="todo">
+                <h2>A Fazer</h2>
+                <div class="card-container">
+                    {% for word in scrambled_text %}
+                    <button class="card" onclick="moveCard(this)">{{word}}</button>
+                    {% endfor %}
+                    <!-- <button class="card" onclick="moveCard(this)">Tarefa 1</button>
+                    <button class="card" onclick="moveCard(this)">Tarefa 2</button>
+                    <button class="card" onclick="moveCard(this)">Tarefa 3</button>
+                    <button class="card" onclick="moveCard(this)">Tarefa 4</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário para enviar tarefas concluídas -->
+    <div class="submit-container">
+        <form id="taskForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="cards" id="completedTasks">
+            <input type="hidden" name="instance_id" value="{{instance_id}}">
+            <button type="submit">Enviar Concluídos</button>
+        </form>
+    </div>
+
+    <script>
+        function moveCard(card) {
+            let currentColumn = card.parentNode;
+            let todoColumn = document.querySelector("#todo .card-container");
+            let doneColumn = document.querySelector("#done .card-container");
+
+            if (currentColumn === todoColumn) {
+                doneColumn.appendChild(card);
+            } else {
+                todoColumn.appendChild(card);
+            }
+        }
+
+        document.getElementById("taskForm").addEventListener("submit", function (event) {
+            let cards = [];
+            document.querySelectorAll("#done .card").forEach(card => {
+                cards.push(card.textContent);
+            });
+
+            document.getElementById("completedTasks").value = cards.join(" ");
+            // alert("Tarefas enviadas: " + completedTasks.join(", "));
+
+            // Aqui você pode enviar os dados via AJAX ou processar no servidor
+            // event.preventDefault(); // Evita o envio real do formulário
+        });
+    </script>
+    <script>
+        var audio = document.getElementById("meuAudio");
+
+        function avancar() {
+            audio.currentTime += 5;  // Avança 5 segundos
+        }
+
+        function retroceder() {
+            audio.currentTime -= 5;  // Retrocede 5 segundos
+        }
+    </script>
+
+</body>
+
+</html>
