@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textos com Cores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .text-green {
+            color: green;
+            font-size: 20px;
+            margin-bottom: 10px; /* Espaço entre os textos */
+        }
+        .text-red {
+            color: red;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="{{color}}">
+        <p>{{message}}</p>
+        <p><a href="http://localhost:8000/vocabulary_test/">Retorna para o Teste.</a></p>
+    </div>
+</body>
+</html>

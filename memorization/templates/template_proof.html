@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Prova de Múltipla Escolha</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .pergunta {
+      margin-bottom: 20px;
+    }
+    .alternativas label {
+      display: block;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Prova de Múltipla Escolha</h1>
+
+  <form id="prova" method="POST">
+    {% csrf_token %}
+    <div class="pergunta">
+      <p>{{sentence}}</p>
+      <div class="alternativas">
+        {% for option in options %}
+        <label><input type="radio" name="answer_option" value="{{option.id}}"> {{option.term}}</label>
+        {% endfor %}
+      </div>
+    </div>
+    <input type="hidden" name="instance_id" value="{{instance_id}}">
+    <button type="submit">Enviar Respostas</button>
+  </form>
+
+</body>
+</html>

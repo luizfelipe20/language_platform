@@ -82,6 +82,20 @@
         .submit-container {
             margin-top: 20px;
         }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button.active {
+            background-color: #d9534f;
+        }
     </style>
 </head>
 
@@ -98,9 +112,9 @@
                         Seu navegador não suporta o elemento de áudio.
                     </audio>
                     <br>
-                    <!-- Botões Personalizados -->
-                    <button onclick="retroceder()"> 5s << </button>
-                    <button onclick="avancar()"> 5s >> </button>
+                    <button id="repeatButton" onclick="toggleRepeat()">Repeat Off</button>
+                    <!-- <button onclick="retroceder()"> 5s << </button>
+                    <button onclick="avancar()"> 5s >> </button> -->
 
                 </div>
             </div>
@@ -129,7 +143,7 @@
             {% csrf_token %}
             <input type="hidden" name="cards" id="completedTasks">
             <input type="hidden" name="instance_id" value="{{instance_id}}">
-            <button type="submit">Enviar Concluídos</button>
+            <button type="submit">Enviar Resposta</button>
         </form>
     </div>
 
@@ -159,7 +173,7 @@
             // event.preventDefault(); // Evita o envio real do formulário
         });
     </script>
-    <script>
+    <!-- <script>
         var audio = document.getElementById("meuAudio");
 
         function avancar() {
@@ -168,6 +182,22 @@
 
         function retroceder() {
             audio.currentTime -= 5;  // Retrocede 5 segundos
+        }
+    </script> -->
+     <script>
+        const audio = document.getElementById("meuAudio");
+        const repeatButton = document.getElementById("repeatButton");
+
+        function toggleRepeat() {
+            audio.loop = !audio.loop; // Alterna o repeat
+            console.log(audio.loop)
+            if (audio.loop) {
+                repeatButton.textContent = "Repeat On";
+                repeatButton.classList.add("active");
+            } else {
+                repeatButton.textContent = "Repeat Off";
+                repeatButton.classList.remove("active");
+            }
         }
     </script>
 

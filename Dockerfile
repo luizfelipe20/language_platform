@@ -1,4 +1,4 @@
-FROM python:3.11.6-slim AS development_build
+FROM python:3.12.3-slim AS development_build
 
 ARG DJANGO_ENV
 
@@ -17,7 +17,7 @@ ENV DJANGO_ENV=${DJANGO_ENV} \
   POETRY_CACHE_DIR='/var/cache/pypoetry'
 
 # System deps:
-RUN apt-get update && apt-get -y install gcc
+RUN apt-get update && apt-get -y install gcc espeak-ng ffmpeg
 
 # set work directory
 WORKDIR /app

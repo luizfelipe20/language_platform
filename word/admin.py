@@ -2,9 +2,9 @@ from django.contrib import admin
 from word.models import (
     Translation,
     ShortText,
+    HistoryAttempt,
     Term,
-    Tag,
-    Token
+    Tag
 )
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
@@ -63,13 +63,12 @@ class TagAdmin(admin.ModelAdmin):
     filter_horizontal = ('tags',)
 
 
-@admin.register(Token)
-class TokenAdmin(admin.ModelAdmin):
-    list_display = ('name', 'id', 'created_at', 'updated_at')
-    search_fields = ('id', 'name')
-
-
 @admin.register(ShortText)
 class ShortTextAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created_at', 'updated_at')
+    list_display = ('id', 'completed', 'created_at', 'updated_at')
+
+
+@admin.register(HistoryAttempt)
+class HistoryAttemptAdmin(admin.ModelAdmin):
+    list_display = ('id', 'got_it_right', 'created_at', 'updated_at')
 

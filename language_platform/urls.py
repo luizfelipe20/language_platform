@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from memorization.views import meu_formulario
+from memorization.views import meu_formulario, vocabulary_test
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('formulario/', meu_formulario, name='formulario'),
+    path('vocabulary_test/', vocabulary_test, name='vocabulary_test'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

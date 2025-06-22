@@ -42,6 +42,7 @@ class Term(models.Model):
 class Translation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     term = models.TextField()
+    right_option = models.BooleanField(default=False)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, null=True, blank=True)
     reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,33 +55,6 @@ class Translation(models.Model):
         return f'{self.term} - {self.id}'
 
 
-class Token(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, null=True, blank=True)
-    definition = models.TextField(null=True, blank=True)
-    part_of_speech = models.CharField(max_length=100, null=True, blank=True)
-    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    # class Meta:
-    #     unique_together = [('name',)]
-
-    def __str__(self):
-        return f'{self.name} - {self.id}'
-    
-
-class WordTerm(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    word = models.ForeignKey(Token, on_delete=models.SET_NULL, null=True, blank=True)
-    term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'{self.id}'
-
-
 class ShortText(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     text = RichTextField()
@@ -91,6 +65,19 @@ class ShortText(models.Model):
     has_translate = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
     tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+
+class HistoryAttempt(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
+    got_it_right = models.BooleanField(default=False)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
