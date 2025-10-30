@@ -10,6 +10,7 @@ class Challenge(models.Model):
     tags = models.ManyToManyField(Tag, related_name='challenges_tags', null=True, blank=True)
     writing = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    number_of_correct_answers = models.PositiveIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

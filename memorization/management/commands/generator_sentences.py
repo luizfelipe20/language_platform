@@ -1,8 +1,7 @@
 import re
-import random
+import time
 from django.core.management.base import BaseCommand
 from memorization.gpt_api import sentence_generator
-from memorization.models import MultipleChoiceMemorizationTestsOptions
 from word.models import Tag, Term, Translation, TypePartSpeechChoices
 
 
@@ -11,23 +10,29 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options): 
         with open('./memorization/management/commands/tokens.txt', 'r') as file:
-            # Lê todas as linhas do arquivo e armazena em uma lista
             linhas = file.readlines()    
             _dict_options = {}
-
+                
+            Term.objects.filter(translation__isnull=True).delete()
+            tags = Tag.objects.all().values_list('id', flat=True)
+            [Term.objects.filter(tags__in=(tag,)).delete() for tag in tags if Term.objects.filter(tags__in=(tag,)).count() < 5]
+            
             for elem in linhas:
                 token = elem.strip()
-                _request_gpt = f"""Behave like an English teacher and create 5 sentences using the following sentence {token}. 
-                Enumerate the sentences. Return exactly what was requested, without additional information.
+                if Term.objects.filter(tags__in=(Tag.objects.filter(term=token).last(),)).count() == 5:
+                    print(token)
+                    continue
+
+                _request_gpt = f"""Behave like an English teacher and create 5 sentences between 80 and 100 characters 
+                using the following sentence {token}. Enumerate the sentences. Return exactly what was requested, without additional information.
                 """
                 _result_gpt = sentence_generator(_request_gpt)
                 _dict_options[token] = self._sanitizing_responses(_result_gpt)
-            
-            _list_with_tags = self._formatter(_dict_options)
-            _list_sentences = self._to_save(_list_with_tags)
-
-            self._generate_correct_translations(_list_sentences)
-            self._generate_incorrect_translations(_list_sentences)
+                time.sleep(5)
+                _list_with_tags = self._formatter(_dict_options)                
+                _list_sentences = self._to_save(_list_with_tags)
+                _dict_options = {}
+                self._generate_correct_translations(_list_sentences)
 
     def _sanitizing_responses(self, _result_gpt):
         list_sentences = _result_gpt.split("\n")
@@ -58,7 +63,7 @@ class Command(BaseCommand):
 
     def _to_save(self, _list):
         _results = []
-        for elem in _list:
+        for elem in _list:                                    
             try:
                 sentence_obj, _ = Term.objects.get_or_create(**{
                     "text": elem.get("sentence"),
@@ -82,20 +87,25 @@ class Command(BaseCommand):
                     "reference": elem.get('obj'),
                     "language": TypePartSpeechChoices.PORTUGUESE, 
                 })
+                self._generate_incorrect_translations(elem.get('obj'), _result_gpt)
             except Exception as exc:
                 print(f"_generates_translations_for_sentences__error: {exc}")
 
-    def _generate_incorrect_translations(self, _list):
-        for elem in _list:
-            _request_gpt = f"Create 5 incorrect translations for the following sentence {elem.get('sentence')}, in Brazilian Portuguese, change the meaning of the sentences, but keep the grammatical structure, number the sentences. Return exactly what was requested, without additional information."                
-            _result_gpt = sentence_generator(_request_gpt)
-            _results = self._sanitizing_responses(_result_gpt)
-            for item in _results:
-                try:
-                    Translation.objects.get_or_create(**{
-                        "term": item,
-                        "reference": elem.get('obj'),
-                        "language": TypePartSpeechChoices.PORTUGUESE, 
-                    })
-                except Exception as exc:
-                    print(f"_generates_translations_for_sentences__error: {exc}")
+    def _generate_incorrect_translations(self, obj, sentence):
+        # _request_gpt = f"""Create 5 incorrect translations changing the main meaning of the sentence for the following sentence {elem.get('sentence')}, 
+        # in Brazilian Portuguese, number the sentences. Return exactly what was requested, without additional information."""                
+        _request_gpt= f"""Acting as a Brazilian grammar teacher, create 5 incorrect translations into Brazilian Portuguese 
+        for the following sentence {sentence}, keep the grammatical structure, but change the meaning of the sentences, number the sentences. 
+        Be sufficient and return exactly what was requested without further explanation."""
+        _result_gpt = sentence_generator(_request_gpt)
+        time.sleep(0.5)
+        _results = self._sanitizing_responses(_result_gpt)
+        for item in _results:
+            try:
+                Translation.objects.get_or_create(**{
+                    "term": item,
+                    "reference": obj,
+                    "language": TypePartSpeechChoices.PORTUGUESE, 
+                })
+            except Exception as exc:
+                print(f"_generates_translations_for_sentences__error: {exc}")

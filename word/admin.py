@@ -70,5 +70,6 @@ class ShortTextAdmin(admin.ModelAdmin):
 
 @admin.register(HistoryAttempt)
 class HistoryAttemptAdmin(admin.ModelAdmin):
-    list_display = ('id', 'got_it_right', 'created_at', 'updated_at')
+    search_fields = ('reference__id',)
+    list_display = ('id', 'reference', 'got_it_right', 'created_at', 'updated_at')
 

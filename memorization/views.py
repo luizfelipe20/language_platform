@@ -1,8 +1,9 @@
 import html
 import random
+from memorization.models import Challenge
 from word.models import ShortText, Term, Translation, HistoryAttempt
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Q
 from memorization.utils import remove_tags_html
 
 
@@ -66,19 +67,18 @@ def vocabulary_test(request):
         }
         return render(request, 'result_form.html', context)
     else:
-        # history_attempt = HistoryAttempt.objects.filter(got_it_right=True).distinct()
-        # validated_sentences = [for elem in history_attempt]
-
-        instances = Term.objects.annotate(num_historyattempt=Count('historyattempt')).filter(
-            num_historyattempt=3, 
-            historyattempt__got_it_right=True
+        _qtd_correct_answers = Challenge.objects.filter(is_active=True).last().number_of_correct_answers
+        
+        instances = Term.objects.annotate(
+            num_historyattempt=Count('historyattempt'), filter=Q(historyattempt__got_it_right=True)
+            ).filter( 
+            num_historyattempt__gte=_qtd_correct_answers
         )
-        print(f"instances: {instances}")
 
-        instances = Term.objects.all()
+        instances = Term.objects.exclude(id__in=instances)
         num = random.randint(0, instances.count()-1)   
         elem = instances[num]
-        translations = list(elem.translation_set.all().values('id', 'term'))
+        translations = list(elem.translation_set.all().values('id', 'term').order_by('?'))
         context = {
             'instance_id': elem.id,
             'sentence': elem.text,
