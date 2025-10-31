@@ -1,11 +1,13 @@
 import os
 from time import sleep
-import openai
+from openai import OpenAI
 
-openai.api_key = os.environ.get("GPT_API_KEY")
+
+client = OpenAI(api_key=os.environ.get("GPT_API_KEY"))
+
 
 def query_api(messages):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo-1106",
         messages=messages
     )
@@ -21,7 +23,7 @@ def sentence_generator(question):
         validator_answer = [elem in answer for elem in ("Sorry", "sorry", "Desculpe", "ajudar")]
         if any(validator_answer):
             print(f"reexecução..........: {question}")
-            sleep(10)
+            sleep(2)
             return sentence_generator(question)
 
         return answer

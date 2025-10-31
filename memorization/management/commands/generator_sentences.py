@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 """
                 _result_gpt = sentence_generator(_request_gpt)
                 _dict_options[token] = self._sanitizing_responses(_result_gpt)
-                time.sleep(5)
+                time.sleep(10)
                 _list_with_tags = self._formatter(_dict_options)                
                 _list_sentences = self._to_save(_list_with_tags)
                 _dict_options = {}
@@ -98,7 +98,7 @@ class Command(BaseCommand):
         for the following sentence {sentence}, keep the grammatical structure, but change the meaning of the sentences, number the sentences. 
         Be sufficient and return exactly what was requested without further explanation."""
         _result_gpt = sentence_generator(_request_gpt)
-        time.sleep(0.5)
+        time.sleep(5)
         _results = self._sanitizing_responses(_result_gpt)
         for item in _results:
             try:

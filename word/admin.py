@@ -34,7 +34,7 @@ class TranslationInline(admin.TabularInline):
 @admin.register(Term)
 class TermAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_text', 'get_translations', 'get_tags', 'created_at', 'updated_at')
-    search_fields = ('id', 'text', 'tag__term')
+    search_fields = ('id', 'text', 'tags__term')
     filter_horizontal = ('tags', )
     inlines = [TranslationInline]
     list_filter = (
