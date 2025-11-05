@@ -1,19 +1,7 @@
 from django.contrib import admin
-from .models import (HistoricChallenge, Challenge, Options)
+from .models import (HistoricChallenge, HistoryAttempt, Challenge, ChallengesCompleted)
 from django.utils.html import format_html
-from rangefilter.filters import DateRangeFilterBuilder
-from django.forms import Textarea
-from django.db import models
 
-
-class OptionsInline(admin.TabularInline):
-    model = Options
-    extra = 0
-    ordering = ('created_at',)
-    formfield_overrides = {
-        models.TextField: {'widget': Textarea(attrs={'rows':1, 'cols':120})},
-    }
-    
 
 class HistoricChallengeInline(admin.TabularInline):
     model = HistoricChallenge
@@ -34,6 +22,12 @@ class ChallengesAdmin(admin.ModelAdmin):
         return format_html(f"<ul>{''.join(html)}</ul>")
 
 
-@admin.register(Options)
-class OptionAdmin(admin.ModelAdmin):
+@admin.register(HistoryAttempt)
+class HistoryAttemptAdmin(admin.ModelAdmin):
+    search_fields = ('reference__id',)
+    list_display = ('id', 'reference', 'got_it_right', 'created_at', 'updated_at')
+
+
+@admin.register(ChallengesCompleted)
+class ChallengesCompletedAdmin(admin.ModelAdmin):
     ...

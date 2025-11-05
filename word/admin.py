@@ -2,7 +2,6 @@ from django.contrib import admin
 from word.models import (
     Translation,
     ShortText,
-    HistoryAttempt,
     Term,
     Tag
 )
@@ -66,10 +65,3 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ShortText)
 class ShortTextAdmin(admin.ModelAdmin):
     list_display = ('id', 'completed', 'created_at', 'updated_at')
-
-
-@admin.register(HistoryAttempt)
-class HistoryAttemptAdmin(admin.ModelAdmin):
-    search_fields = ('reference__id',)
-    list_display = ('id', 'reference', 'got_it_right', 'created_at', 'updated_at')
-

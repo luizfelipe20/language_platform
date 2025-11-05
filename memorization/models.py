@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
-from word.models import Tag, Term, ShortText, TypePartSpeechChoices
-from ckeditor.fields import RichTextField
+from word.models import Tag, Term, TypePartSpeechChoices
 
 
 class Challenge(models.Model):
@@ -16,19 +15,6 @@ class Challenge(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
-
-
-class ChallengeShortText(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=200, null=True, blank=True)
-    short_texts = models.ManyToManyField(ShortText, null=True, blank=True)
-    writing = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'{self.id}'
     
 
 class HistoricChallenge(models.Model):
@@ -38,51 +24,26 @@ class HistoricChallenge(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
 
-
-class WordMemorizationRandomTest(models.Model):
+class HistoryAttempt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
-    term = RichTextField(config_name='term_ckeditor')
-    is_true = models.BooleanField(default=False)
     challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
-    historic_challenge = models.ForeignKey(HistoricChallenge, on_delete=models.SET_NULL, null=True, blank=True)
-    needs_reinforcement = models.BooleanField(default=False)
+    got_it_right = models.BooleanField(default=False)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.id}'
 
-class UnavailableItem(models.Model):
+
+class ChallengesCompleted(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class Options(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    option = models.TextField(null=True, blank=True)
-    selected = models.BooleanField(default=False)
-    word_memorization_random_test = models.ForeignKey(WordMemorizationRandomTest, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class MultipleChoiceMemorizationTestsOptions(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
-    sentences_options = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class ShortTextMemorizationTest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.ForeignKey(ShortText, on_delete=models.CASCADE, null=True, blank=True)
-    scrambled_text = RichTextField(null=True, blank=True)
-    audio = models.FileField(upload_to='audios/', null=True, blank=True) 
-    text = RichTextField(null=True, blank=True)
-    correct = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

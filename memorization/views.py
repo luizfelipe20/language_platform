@@ -1,24 +1,38 @@
-import html
 import random
-from memorization.models import Challenge
-from word.models import ShortText, Term, Translation, HistoryAttempt
+from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
+from word.models import Term, Tag
 from django.shortcuts import render
 from django.db.models import Count, Q
 from memorization.utils import remove_tags_html
 
 
 def vocabulary_test(request):
-    if request.method == 'POST': 
+    challenge = Challenge.objects.filter(is_active=True).last()
+    
+    if request.method == 'POST':                     
         instance_id = request.POST.get("instance_id")
         instance = Term.objects.get(id=instance_id)            
+        
+        if "i_dont_know" in request.POST:
+            tag = Tag.objects.get(term="study_again")
+            instance.tags.add(tag)
+        
         answer_option_form = request.POST.get('answer_option')
         answer_option = instance.translation_set.filter(right_option=True).last()
         got_it_right = str(answer_option.id) == answer_option_form
-
+            
         HistoryAttempt.objects.create(**{
             "reference": instance,
-            "got_it_right": got_it_right
+            "got_it_right": got_it_right,
+            "challenge": challenge
         })
+        
+        if HistoryAttempt.objects.filter(reference=instance, challenge=challenge, got_it_right=True).count() == challenge.number_of_correct_answers:
+            ChallengesCompleted.objects.create(**{
+                "reference": instance,
+                "completed": True,
+                "challenge": challenge
+            })
 
         message = 'Wrong answer!!!'
         color = 'text-red'
@@ -32,15 +46,15 @@ def vocabulary_test(request):
         }
         return render(request, 'result_form.html', context)
     else:
-        challenge = Challenge.objects.filter(is_active=True).last()
-                
-        successful_attempts = Term.objects.annotate(
-            num_historyattempt=Count('historyattempt'), filter=Q(historyattempt__got_it_right=True)
-            ).filter( 
-            num_historyattempt__gte=challenge.number_of_correct_answers
-        )
-
-        options = Term.objects.filter(tags__in=challenge.tags.all()).exclude(id__in=successful_attempts)
+        challenges_completed = ChallengesCompleted.objects.filter(
+            challenge=challenge, completed=True
+            ).values_list(
+                "reference", flat=True
+            )
+        options = Term.objects.filter(tags__in=challenge.tags.all()).exclude(id__in=list(challenges_completed))
+        
+        print(f"options: {options}")
+        
         if not options.count():
             context = {
                 'color': 'text-green',
@@ -50,6 +64,7 @@ def vocabulary_test(request):
         
         num = random.randint(0, options.count()-1)   
         elem = options[num]
+                
         translations = list(elem.translation_set.all().values('id', 'term').order_by('?'))
         context = {
             'instance_id': elem.id,

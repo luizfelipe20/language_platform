@@ -73,14 +73,13 @@ class ShortText(models.Model):
         return f'{self.id}'
 
 
+# class HistoryAttempt(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
+#     got_it_right = models.BooleanField(default=False)
+#     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-class HistoryAttempt(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
-    got_it_right = models.BooleanField(default=False)
-    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'{self.id}'
+#     def __str__(self):
+#         return f'{self.id}'

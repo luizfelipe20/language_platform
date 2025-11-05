@@ -8,12 +8,33 @@
       font-family: Arial, sans-serif;
       padding: 20px;
     }
-    .pergunta {
+    input[type="checkbox"] {
+      transform: scale(2.0);
+      accent-color: #e63946;
+      cursor: pointer;
+    }
+    .content {
+      font-size: 24px;
       margin-bottom: 20px;
     }
-    .alternativas label {
+    .sentence {
+      display: flex;
+      gap: 40px;
+    }
+    .options label {
       display: block;
       margin-left: 20px;
+    }
+    .btn-form {
+      background-color: #e63946;   
+      color: white;                
+      border: none;                
+      padding: 10px 20px;          
+      border-radius: 30px;         
+      font-size: 16px;             
+      font-weight: bold;           
+      cursor: pointer;             
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
   </style>
 </head>
@@ -23,16 +44,23 @@
 
   <form id="prova" method="POST">
     {% csrf_token %}
-    <div class="pergunta">
-      <p>{{sentence}}</p>
-      <div class="alternativas">
+    <div class="content">
+      <div class="sentence">
+        <div>
+          <label>{{sentence}}</label>
+        </div>
+        <div>
+          <label for=""><input type="checkbox" name="i_dont_know" value="ok"></label>
+        </div>
+      </div>
+      <div class="options">
         {% for option in options %}
         <label><input type="radio" name="answer_option" value="{{option.id}}"> {{option.term}}</label>
         {% endfor %}
       </div>
     </div>
     <input type="hidden" name="instance_id" value="{{instance_id}}">
-    <button type="submit">Enviar Respostas</button>
+    <button class="btn-form" type="submit">Enviar Respostas</button>
   </form>
 
 </body>
