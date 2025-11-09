@@ -1,6 +1,6 @@
 import random
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
-from word.models import Term, Tag
+from word.models import Term, Tag, ShortText
 from django.shortcuts import render
 from django.db.models import Count, Q
 from memorization.utils import remove_tags_html
@@ -18,7 +18,7 @@ def vocabulary_test(request):
             instance.tags.add(tag)
         
         answer_option_form = request.POST.get('answer_option')
-        answer_option = instance.translation_set.filter(right_option=True).last()
+        answer_option = instance.option_set.filter(right_option=True).last()
         got_it_right = str(answer_option.id) == answer_option_form
             
         HistoryAttempt.objects.create(**{
@@ -46,6 +46,11 @@ def vocabulary_test(request):
         }
         return render(request, 'result_form.html', context)
     else:
+        short_text = None
+        short_text_obj = ShortText.objects.filter(tags__in=challenge.tags.all()).last()
+        if short_text_obj:
+            short_text = short_text_obj.text
+        
         challenges_completed = ChallengesCompleted.objects.filter(
             challenge=challenge, completed=True
             ).values_list(
@@ -65,10 +70,11 @@ def vocabulary_test(request):
         num = random.randint(0, options.count()-1)   
         elem = options[num]
                 
-        translations = list(elem.translation_set.all().values('id', 'term').order_by('?'))
+        options = list(elem.option_set.all().values('id', 'term').order_by('?'))
         context = {
+            'short_text': short_text,
             'instance_id': elem.id,
             'sentence': elem.text,
-            'options': translations
+            'options': options
         }
     return render(request, 'template_proof.html', context)

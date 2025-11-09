@@ -23,8 +23,22 @@ class Tag(models.Model):
         return f'{self.term}'
 
 
+class ShortText(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    text = RichTextField()
+    audio = models.FileField(upload_to='audios/', null=True, blank=True) 
+    tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
+    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
 class Term(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.ForeignKey(ShortText, on_delete=models.CASCADE, null=True, blank=True)
     text = RichTextField()
     tags = models.ManyToManyField(Tag, related_name='word_tags', null=True, blank=True)
     obs = models.TextField(null=True, blank=True)
@@ -39,7 +53,7 @@ class Term(models.Model):
         return f'{self.id}'
     
 
-class Translation(models.Model):
+class Option(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     term = models.TextField()
     right_option = models.BooleanField(default=False)
@@ -53,33 +67,3 @@ class Translation(models.Model):
 
     def __str__(self):
         return f'{self.term} - {self.id}'
-
-
-class ShortText(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    text = RichTextField()
-    translate = RichTextField(null=True, blank=True)
-    audio = models.FileField(upload_to='audios/', null=True, blank=True) 
-    scrambled_text = RichTextField(null=True, blank=True)
-    has_audio = models.BooleanField(default=False)
-    has_translate = models.BooleanField(default=False)
-    completed = models.BooleanField(default=False)
-    tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
-    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'{self.id}'
-
-
-# class HistoryAttempt(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     reference = models.ForeignKey(Term, on_delete=models.CASCADE, null=True, blank=True)
-#     got_it_right = models.BooleanField(default=False)
-#     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return f'{self.id}'

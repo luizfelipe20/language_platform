@@ -13,6 +13,10 @@
       accent-color: #e63946;
       cursor: pointer;
     }
+    .short_text {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
     .content {
       font-size: 24px;
       margin-bottom: 20px;
@@ -44,13 +48,22 @@
 
   <form id="prova" method="POST">
     {% csrf_token %}
+
+    {% if short_text %}
+      <div class="short_text">
+        <div>
+          <label>{{short_text}}</label>
+        </div>
+      </div>
+    {% endif %}
+
     <div class="content">
       <div class="sentence">
         <div>
           <label>{{sentence}}</label>
         </div>
         <div>
-          <label for=""><input type="checkbox" name="i_dont_know" value="ok"></label>
+          <label for=""><input type="checkbox" name="i_dont_know" value="ok"> study again</label>
         </div>
       </div>
       <div class="options">
