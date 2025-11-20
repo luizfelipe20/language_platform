@@ -17,7 +17,11 @@ ENV DJANGO_ENV=${DJANGO_ENV} \
   POETRY_CACHE_DIR='/var/cache/pypoetry'
 
 # System deps:
-RUN apt-get update && apt-get -y install gcc espeak-ng ffmpeg
+RUN apt-get update \
+    && apt-get -y install gcc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # set work directory
 WORKDIR /app
