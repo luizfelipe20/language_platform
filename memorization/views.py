@@ -5,9 +5,11 @@ from word.models import Term, Tag, ShortText
 from django.shortcuts import render
 
 
+servidor = "https://language-platform-dq8b.onrender.com/"
+
+
 def vocabulary_test(request):
     challenge = Challenge.objects.filter(is_active=True).last()
-    servidor = "https://sad-horses-happen.loca.lt/"
     
     if request.method == 'POST':                     
         instance_id = request.POST.get("instance_id")
