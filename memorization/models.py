@@ -7,6 +7,7 @@ class Challenge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='challenges_tags', null=True, blank=True)
+    hearing = models.BooleanField(default=False)
     writing = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     number_of_correct_answers = models.PositiveIntegerField(default=10)

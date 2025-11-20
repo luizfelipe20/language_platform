@@ -1,5 +1,4 @@
 import re
-import time
 import json
 from django.core.management.base import BaseCommand
 from memorization.gpt_api import sentence_generator
@@ -18,7 +17,7 @@ class Command(BaseCommand):
             and return the result in JSON format, The JSON file must contain the keys: "question", "options", "correct_answer".
             """
             
-            tag_obj, _ = Tag.objects.get_or_create(term="short_text_1")
+            tag_obj, _ = Tag.objects.get_or_create(term="short_text_2")
             
             short_text_obj, _ = ShortText.objects.get_or_create(text=short_text)
             short_text_obj.tags.add(tag_obj)

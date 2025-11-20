@@ -2,46 +2,125 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- IMPORTANTE PARA RESPONSIVIDADE -->
   <title>Prova de Múltipla Escolha</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      margin: 0;
     }
-    input[type="checkbox"] {
-      transform: scale(2.0);
+
+    h1 {
+      font-size: 28px;
+      text-align: center;
+    }
+
+    /* Texto principal */
+    .short_text,
+    .content {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    /* Checkbox e radios maiores e responsivos */
+    input[type="checkbox"],
+    input[type="radio"] {
+      transform: scale(1.4);
       accent-color: #e63946;
       cursor: pointer;
+      margin-right: 10px;
     }
-    .short_text {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    .content {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
+
+    /* Layout da frase + checkbox */
     .sentence {
       display: flex;
-      gap: 40px;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap; /* Permite quebrar em telas pequenas */
     }
+
+    /* Opções */
     .options label {
       display: block;
-      margin-left: 20px;
+      margin: 10px 0;
+      font-size: 20px;
     }
+
+    /* Botão */
     .btn-form {
-      background-color: #e63946;   
-      color: white;                
-      border: none;                
-      padding: 10px 20px;          
-      border-radius: 30px;         
-      font-size: 16px;             
-      font-weight: bold;           
-      cursor: pointer;             
+      background-color: #e63946;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%; /* Melhor para mobile */
+      margin-top: 20px;
       transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-form:hover {
+      background-color: #c62834;
+      transform: scale(1.03);
+    }
+
+    /* Player de áudio */
+    audio {
+      width: 100%; /* Responsivo */
+      margin-top: 10px;
+    }
+
+    /* Controles do áudio */
+    #playBtn,
+    #pauseBtn {
+      padding: 8px 15px;
+      font-size: 16px;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    #tempo {
+      font-size: 16px;
+    }
+
+    /* 📱 MEDIA QUERY — TELAS PEQUENAS (CELULAR) */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .short_text,
+      .content {
+        font-size: 18px;
+      }
+
+      .sentence {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .options label {
+        font-size: 18px;
+      }
+
+      input[type="checkbox"],
+      input[type="radio"] {
+        transform: scale(1.7); /* maior para dedo */
+      }
+
+      .btn-form {
+        font-size: 18px;
+        padding: 15px;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <h1>Multiple Choice Test</h1>
@@ -49,32 +128,76 @@
   <form id="prova" method="POST">
     {% csrf_token %}
 
+    {% if short_text_audio %}
+      <div class="short_text">
+        <h3>Audio text</h3>
+
+        <audio id="meuAudio" controls preload="metadata">
+          <source src="{{short_text_audio}}" type="audio/mpeg" />
+        </audio>
+
+        <div style="margin-top:10px;">
+          <button id="playBtn" type="button">▶️ Play</button>
+          <button id="pauseBtn" type="button">⏸️ Pause</button>
+          <span id="tempo">00:00 / 00:00</span>
+        </div>
+      </div>
+    {% endif %}
+
     {% if short_text %}
       <div class="short_text">
-        <div>
-          <label>{{short_text}}</label>
-        </div>
+        <label>{{short_text}}</label>
       </div>
     {% endif %}
 
     <div class="content">
       <div class="sentence">
-        <div>
-          <label>{{sentence}}</label>
-        </div>
-        <div>
-          <label for=""><input type="checkbox" name="i_dont_know" value="ok"> study again</label>
-        </div>
+        <label>{{sentence}}</label>
+
+        <label>
+          <input type="checkbox" name="i_dont_know" value="ok">
+          study again
+        </label>
       </div>
+
       <div class="options">
         {% for option in options %}
-        <label><input type="radio" name="answer_option" value="{{option.id}}"> {{option.term}}</label>
+          <label>
+            <input type="radio" name="answer_option" value="{{option.id}}">
+            {{option.term}}
+          </label>
         {% endfor %}
       </div>
     </div>
+
     <input type="hidden" name="instance_id" value="{{instance_id}}">
-    <button class="btn-form" type="submit">Enviar Respostas</button>
+    <button class="btn-form" type="submit">Send reply</button>
+
   </form>
+
+  <script>
+    const audio = document.getElementById('meuAudio');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const tempo = document.getElementById('tempo');
+
+    playBtn.addEventListener('click', () => audio.play());
+    pauseBtn.addEventListener('click', () => audio.pause());
+
+    function formatarSegundos(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = Math.floor(s % 60).toString().padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    audio.addEventListener('loadedmetadata', () => {
+      tempo.textContent = `00:00 / ${formatarSegundos(audio.duration)}`;
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      tempo.textContent = `${formatarSegundos(audio.currentTime)} / ${formatarSegundos(audio.duration)}`;
+    });
+  </script>
 
 </body>
 </html>

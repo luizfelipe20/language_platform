@@ -1,6 +1,9 @@
+import os
 import uuid
+from openai import OpenAI
 from django.db import models
 from ckeditor.fields import RichTextField
+from django.core.files.base import ContentFile
 
 
 class TypePartSpeechChoices(models.TextChoices):
@@ -34,6 +37,23 @@ class ShortText(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+    
+    def audio_generator(self):
+        client = OpenAI(api_key=os.environ.get("GPT_API_KEY"))
+        response = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice="alloy",
+            response_format="mp3",
+            input=self.text
+        )        
+        file_name = f"audio_{self.pk or 'temp'}.mp3"
+        audio_data = ContentFile(response.content, name=file_name)
+        self.audio.save(file_name, audio_data, save=True)
+        
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.audio:
+            self.audio_generator()
 
 
 class Term(models.Model):

@@ -37,7 +37,6 @@
 # https://chase-seibert.github.io/blog/2010/05/20/django-manytomanyfield-on-modelform-as-checkbox-widget.html
 
 
-
 # docker compose exec -it app python manage.py question_generator
 
 # docker compose exec -it app python manage.py generator_sentences
