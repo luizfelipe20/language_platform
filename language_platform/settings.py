@@ -142,3 +142,6 @@ CKEDITOR_CONFIGS = {
         'width': 'auto',
     },
 }
+
+LOGIN_REDIRECT_URL = '/vocabulary_test/'
+LOGOUT_REDIRECT_URL = '/admin'
