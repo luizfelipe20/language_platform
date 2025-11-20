@@ -40,7 +40,6 @@ idna==3.11
 jiter==0.11.1
 kombu==5.5.4
 langdetect==1.0.9
--e git+ssh://git@github.com/luizfelipe20/language_platform.git@c3a4f6058c62b7c43713618c6d4c5cb81f22a12d#egg=language_platform
 msgpack==1.1.2
 multidict==6.2.0
 mypy==1.18.2
