@@ -13,7 +13,7 @@ class Command(BaseCommand):
             short_text = file.read()
             _request_gpt = f"""
             {short_text}
-            Based on the text above, generate twenty multiple-choice questions where only one option is correct, 
+            Based on the text above, generate twelve multiple-choice questions where only one option is correct, 
             and return the result in JSON format, The JSON file must contain the keys: "question", "options", "correct_answer".
             """
             
