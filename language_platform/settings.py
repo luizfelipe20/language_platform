@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-4z@u#8=8%p3$1!m)1g7$y!l4v&rc%2$g9e%u@bq^!f$0j0@qv*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG")
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -77,13 +77,6 @@ WSGI_APPLICATION = 'language_platform.wsgi.application'
 
 if DEBUG:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
-            conn_max_age=600
-        )
-    }
-else:
-    DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("POSTGRES_DB"),
@@ -92,7 +85,14 @@ else:
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT"),
         }
-    }    
+    }
+else:
+     DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get("DATABASE_URL"),
+            conn_max_age=600
+        )
+    }   
 
 AUTH_PASSWORD_VALIDATORS = [
     {
