@@ -1,19 +1,10 @@
 from django.utils.deprecation import MiddlewareMixin
+from django.shortcuts import redirect
 
-class RequestResponseLoggingMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        # Aqui você captura TODA requisição antes de chegar na view
-        print("➡️ REQUISIÇÃO ENTRANDO:")
-        print(f"URL: {request.path}")
-        print(f"Método: {request.method}")
-        print(f"Headers: {request.headers}")
-        print(f"Body: {request.body}")  # cuidado em produção!
-        return None
 
+class RequestResponseLoggingMiddleware(MiddlewareMixin):    
     def process_response(self, request, response):
-        # Aqui você captura TODA resposta antes de sair do Django
-        print("⬅️ RESPOSTA SAINDO:")
-        print(f"Status: {response.status_code}")
-        print(f"Content-Type: {response['Content-Type']}")
-        print(f"Body: {response.content}")  # cuidado em produção!
+        print(f"URL: {request.path}")
+        if response.status_code == 302 and request.path == '/admin/login/':
+            return redirect('/vocabulary_test/')
         return response

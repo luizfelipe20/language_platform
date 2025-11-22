@@ -1,10 +1,7 @@
-import os
 import random
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
 from word.models import Term, Tag, ShortText
 from django.shortcuts import render
-from django.contrib.auth.views import LoginView
-from django.shortcuts import redirect
 
 
 servidor = "https://language-platform-dq8b.onrender.com/"
@@ -89,8 +86,3 @@ def vocabulary_test(request):
             'options': options
         }
     return render(request, 'template_proof.html', context)
-
-
-class CustomLoginView(LoginView):
-    def get_success_url(self):
-        return '/vocabulary_test/'
