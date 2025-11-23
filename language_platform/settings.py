@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'memorization',
     'word',
     'ckeditor',
-    'markdownify',
 ]
 
 MIDDLEWARE = [

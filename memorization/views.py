@@ -52,14 +52,10 @@ def vocabulary_test(request):
 
         short_text_obj = ShortText.objects.filter(tags__in=challenge.tags.all()).last()
         if short_text_obj:            
-            if challenge.writing:
-                short_text = short_text_obj.text
-            if challenge.hearing:
-                short_text_audio = short_text_obj.audio.url
-            if challenge.translation:
-                short_text_translation = short_text_obj.translation
-            if challenge.phonetic_transcription:
-                short_text_phonetic_transcription = short_text_obj.phonetic_transcription_portuguese
+            short_text = short_text_obj.text
+            short_text_audio = short_text_obj.audio.url
+            short_text_translation = short_text_obj.translation
+            short_text_phonetic_transcription = short_text_obj.phonetic_transcription_portuguese
      
         challenges_completed = ChallengesCompleted.objects.filter(
             challenge=challenge, completed=True
