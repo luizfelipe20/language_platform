@@ -9,6 +9,8 @@ class Challenge(models.Model):
     tags = models.ManyToManyField(Tag, related_name='challenges_tags', null=True, blank=True)
     hearing = models.BooleanField(default=False)
     writing = models.BooleanField(default=False)
+    translation = models.BooleanField(default=False)
+    phonetic_transcription = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     number_of_correct_answers = models.PositiveIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -16,15 +18,6 @@ class Challenge(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.created_at.strftime("%d/%m/%Y")} - {self.id}'
-    
-
-class HistoricChallenge(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    number_of_correct_answers = models.PositiveIntegerField(default=10)
-    language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)    
-    challenge = models.ForeignKey(Challenge, on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
 
 class HistoryAttempt(models.Model):

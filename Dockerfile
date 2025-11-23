@@ -32,5 +32,6 @@ RUN poetry config virtualenvs.create false && poetry config installer.max-worker
 RUN poetry install --no-root
 
 COPY . /app/
+COPY .env /app/.env
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "language_platform.wsgi:application"]

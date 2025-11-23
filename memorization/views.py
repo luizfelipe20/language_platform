@@ -1,10 +1,11 @@
+import os
 import random
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
-from word.models import Term, Tag, ShortText
+from word.models import Term, ShortText
 from django.shortcuts import render
 
 
-servidor = "https://language-platform-dq8b.onrender.com/"
+servidor = os.environ.get("SERVIDOR")
 
 
 def vocabulary_test(request):
@@ -13,11 +14,7 @@ def vocabulary_test(request):
     if request.method == 'POST':                     
         instance_id = request.POST.get("instance_id")
         instance = Term.objects.get(id=instance_id)            
-        
-        if "i_dont_know" in request.POST:
-            tag = Tag.objects.get(term="study_again")
-            instance.tags.add(tag)
-        
+                
         answer_option_form = request.POST.get('answer_option')
         answer_option = instance.option_set.filter(right_option=True).last()
         got_it_right = str(answer_option.id) == answer_option_form
@@ -50,13 +47,20 @@ def vocabulary_test(request):
     else:
         short_text = None
         short_text_audio = None
+        short_text_translation = None
+        short_text_phonetic_transcription = None
+
         short_text_obj = ShortText.objects.filter(tags__in=challenge.tags.all()).last()
-        if challenge.writing:
-            if short_text_obj:
+        if short_text_obj:            
+            if challenge.writing:
                 short_text = short_text_obj.text
-        if challenge.hearing:
-            short_text_audio = short_text_obj.audio.url
-        
+            if challenge.hearing:
+                short_text_audio = short_text_obj.audio.url
+            if challenge.translation:
+                short_text_translation = short_text_obj.translation
+            if challenge.phonetic_transcription:
+                short_text_phonetic_transcription = short_text_obj.phonetic_transcription_portuguese
+     
         challenges_completed = ChallengesCompleted.objects.filter(
             challenge=challenge, completed=True
             ).values_list(
@@ -64,7 +68,6 @@ def vocabulary_test(request):
                 flat=True
             )
         options = Term.objects.filter(tags__in=challenge.tags.all()).exclude(id__in=list(challenges_completed))
-        print(f"XXXXXXXXXXXX: {options}")
         
         if not options.count():
             context = {
@@ -81,6 +84,8 @@ def vocabulary_test(request):
         context = {
             'short_text': short_text,
             'short_text_audio': short_text_audio,
+            'short_text_translation': short_text_translation,
+            'short_text_phonetic_transcription': short_text_phonetic_transcription,
             'instance_id': elem.id,
             'sentence': elem.text,
             'options': options

@@ -1,12 +1,6 @@
 from django.contrib import admin
-from .models import (HistoricChallenge, HistoryAttempt, Challenge, ChallengesCompleted)
+from .models import (HistoryAttempt, Challenge, ChallengesCompleted)
 from django.utils.html import format_html
-
-
-class HistoricChallengeInline(admin.TabularInline):
-    model = HistoricChallenge
-    extra = 0
-    ordering = ('created_at',)
     
 
 @admin.register(Challenge)
@@ -15,7 +9,6 @@ class ChallengesAdmin(admin.ModelAdmin):
     search_fields = ('id', 'tags__term')
     filter_horizontal = ('tags',)
     ordering = ('-created_at',)
-    inlines = [HistoricChallengeInline]
         
     def get_tags(self, obj):
         html = [f"<li>{item.term}</li>" for item in obj.tags.all()]

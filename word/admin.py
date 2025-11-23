@@ -65,3 +65,12 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ShortText)
 class ShortTextAdmin(admin.ModelAdmin):
     list_display = ('id', 'created_at', 'updated_at')
+    filter_horizontal = ('tags', )
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj is None:
+            form.base_fields['instruction_ia'].initial = """
+            Based on the text above, generate twelve multiple-choice questions where only one option is correct, 
+            and return the result in JSON format, The JSON file must contain the keys: "question", "options", "correct_answer".
+            """    
+        return form

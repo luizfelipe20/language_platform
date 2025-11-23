@@ -23,6 +23,8 @@ python-dotenv = "^1.2.1"
 dj-database-url = "^3.0.1"
 django-storages = "^1.14.6"
 boto3 = "^1.41.2"
+html2text = "^2025.4.15"
+django-markdownify = "^0.9.5"
 
 [build-system]
 requires = ["poetry-core"]

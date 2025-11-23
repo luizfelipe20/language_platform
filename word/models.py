@@ -1,10 +1,19 @@
 import os
+import re
+import json
 import uuid
 from openai import OpenAI
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.core.files.base import ContentFile
 
+from memorization.gpt_api import sentence_generator
+
+
+def format_names_for_tags(title):
+    title = title.lower()
+    title = re.sub(r"\s+", "_", title)
+    return title
 
 class TypePartSpeechChoices(models.TextChoices):
     PORTUGUESE = 'Portuguese'
@@ -28,7 +37,11 @@ class Tag(models.Model):
 
 class ShortText(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200, null=True, blank=True)
     text = RichTextField()
+    translation = RichTextField(null=True, blank=True)
+    phonetic_transcription_portuguese = RichTextField(null=True, blank=True)
+    instruction_ia = RichTextField(null=True, blank=True)
     audio = models.FileField(upload_to='audios/', null=True, blank=True) 
     tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
@@ -50,11 +63,58 @@ class ShortText(models.Model):
         audio_data = ContentFile(response.content, name=file_name)
         self.audio.save(file_name, audio_data, save=True)
         
+    def translator(self):
+        _request_gpt = f"""
+        Translate the following text into Brazilian Portuguese:{self.text}.
+        Be concise and only provide the information requested.
+        """
+        self.translation = sentence_generator(_request_gpt)
+    
+    def transcription_into_portuguese(self):
+        _request_gpt = f"""
+        {self.text}
+        Which phonetic transcription of the text above is the most common in the Portuguese language?
+        """
+        self.phonetic_transcription_portuguese = sentence_generator(_request_gpt)
+    
+    def question_generator(self):
+        _request_gpt = f"""
+        {self.text}
+        {self.instruction_ia}
+        """
+        
+        tag_obj, _ = Tag.objects.get_or_create(term=format_names_for_tags(self.title))
+        self.tags.set([tag_obj])
+        
+        _result_gpt = sentence_generator(_request_gpt)
+        json_str = re.search(r'\{.*\}', _result_gpt, re.DOTALL).group()
+        elems = json.loads(json_str)['questions']
+        for obj_chat_gpt in elems:
+            sentence_obj, _ = Term.objects.get_or_create(**{
+                "text": obj_chat_gpt['question'],
+                "reference": ShortText.objects.get(id=self.id),
+                "language": TypePartSpeechChoices.ENGLISH, 
+            })
+            sentence_obj.tags.set([tag_obj])
+            for option in obj_chat_gpt['options']:
+                Option.objects.get_or_create(**{
+                    "term": option,
+                    "right_option": option in obj_chat_gpt['correct_answer'],
+                    "reference": sentence_obj,
+                    "language": TypePartSpeechChoices.PORTUGUESE, 
+                })
+        
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if not self.audio:
             self.audio_generator()
-
+        if not self.translation:
+            self.translator()
+        # if not self.phonetic_transcription_portuguese:
+        #     self.transcription_into_portuguese()
+        super().save(*args, **kwargs)
+        if Term.objects.filter(reference__id=self.id).count() < 12:
+           self.question_generator() 
+           
 
 class Term(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
