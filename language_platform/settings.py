@@ -75,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'language_platform.wsgi.application'
 
-if DEBUG in (False, 'False', 'false', '0', 0):
+if DEBUG in (False, 'False', 'false', '0', 0, None):
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
@@ -151,3 +151,6 @@ CKEDITOR_CONFIGS = {
     },
 }
 
+SESSION_COOKIE_AGE = 2 * 60   # 20 minutos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
