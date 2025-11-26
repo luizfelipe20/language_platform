@@ -109,6 +109,7 @@ def vocabulary_test(request):
             'instance_id': elem.id,
             'sentence': elem.text,
             'options': options,
-            'minutes': total_time_minutes
+            'minutes': total_time_minutes,
+            'servidor': servidor
         }
     return render(request, 'template_proof.html', context)
