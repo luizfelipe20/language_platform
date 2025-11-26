@@ -75,7 +75,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'language_platform.wsgi.application'
 
-if DEBUG in (False, 'False', 'false', '0', 0, None):
+if DEBUG in (False, 'False', 'false', '0', 0, None, 'None', ''):
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
