@@ -1,7 +1,7 @@
 import os
 import random
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
-from word.models import Term, ShortText
+from word.models import Term, ShortText, TotalStudyTimeLog
 from django.shortcuts import render
 
 
@@ -77,6 +77,17 @@ def vocabulary_test(request):
         elem = options[num]
                 
         options = list(elem.option_set.all().values('id', 'term').order_by('?'))
+        
+        lits_times = []
+        total_time_minutes = 0
+        for item in TotalStudyTimeLog.objects.all().distinct('session_id'):
+            instance_time_entry = TotalStudyTimeLog.objects.filter(session_id=item.session_id, status='entrada').last()
+            instance_time_departure = TotalStudyTimeLog.objects.filter(session_id=item.session_id, status='saida').last()
+            if instance_time_departure:
+                time_diff = instance_time_departure.login_time - instance_time_entry.login_time
+                lits_times.append(time_diff.seconds)
+        total_time_minutes = sum(lits_times) // 60
+
         context = {
             'short_text': short_text,
             'short_text_audio': short_text_audio,
@@ -84,6 +95,7 @@ def vocabulary_test(request):
             'short_text_phonetic_transcription': short_text_phonetic_transcription,
             'instance_id': elem.id,
             'sentence': elem.text,
-            'options': options
+            'options': options,
+            'minutes': total_time_minutes
         }
     return render(request, 'template_proof.html', context)

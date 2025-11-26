@@ -2,6 +2,7 @@ from django.contrib import admin
 from word.models import (
     Option,
     ShortText,
+    TotalStudyTimeLog,
     Term,
     Tag
 )
@@ -74,3 +75,10 @@ class ShortTextAdmin(admin.ModelAdmin):
             and return the result in JSON format, The JSON file must contain the keys: "question", "options", "correct_answer".
             """    
         return form
+    
+
+@admin.register(TotalStudyTimeLog)
+class TotalStudyTimeLogAdmin(admin.ModelAdmin):
+    list_display = ('login_time', 'session_id', 'status')
+    ordering = ('-login_time',)
+

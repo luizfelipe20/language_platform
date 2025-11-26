@@ -7,4 +7,4 @@ class WordConfig(AppConfig):
     name = 'word'
 
     def ready(self):
-       ... 
+       import word.signals 

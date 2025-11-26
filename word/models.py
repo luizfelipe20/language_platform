@@ -2,6 +2,8 @@ import os
 import re
 import json
 import uuid
+from datetime import timedelta
+from django.contrib.auth.models import User
 from openai import OpenAI
 from django.db import models
 from ckeditor.fields import RichTextField
@@ -45,6 +47,7 @@ class ShortText(models.Model):
     audio = models.FileField(upload_to='audios/', null=True, blank=True) 
     tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -147,3 +150,10 @@ class Option(models.Model):
 
     def __str__(self):
         return f'{self.term} - {self.id}'
+
+
+class TotalStudyTimeLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    login_time = models.DateTimeField(null=True, blank=True)
+    session_id = models.CharField(max_length=70, null=True, blank=True) 
+    status = models.CharField(max_length=50, null=True, blank=True)
