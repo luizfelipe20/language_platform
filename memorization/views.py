@@ -87,7 +87,7 @@ def vocabulary_test(request):
                 session_id=item.session_id, user=request.user, status='on').last()
             instance_time_departure = TotalStudyTimeLog.objects.filter(
                 session_id=item.session_id, user=request.user, status='off').last()
-            if instance_time_departure:
+            if instance_time_departure and instance_time_entry:
                 time_diff = instance_time_departure.login_time - instance_time_entry.login_time
                 lits_times.append(time_diff.seconds)
 
