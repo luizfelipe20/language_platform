@@ -76,6 +76,18 @@ class ShortTextAdmin(admin.ModelAdmin):
             """    
         return form
     
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.username == 'admin':
+            return qs.all()
+        return qs.filter(user=request.user)
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.user:  
+            obj.user = request.user
+        super().save_model(request, obj, form, change)
+
+    
 
 @admin.register(TotalStudyTimeLog)
 class TotalStudyTimeLogAdmin(admin.ModelAdmin):
