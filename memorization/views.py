@@ -1,5 +1,7 @@
 import os
 import random
+from django.utils import timezone
+from datetime import timedelta
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
 from word.models import Term, ShortText, TotalStudyTimeLog
 from django.shortcuts import render
@@ -9,7 +11,7 @@ servidor = os.environ.get("SERVIDOR")
 
 
 def vocabulary_test(request):
-    challenge = Challenge.objects.filter(is_active=True).last()
+    challenge = Challenge.objects.filter(user=request.user, is_active=True).last()
     
     if request.method == 'POST':                     
         instance_id = request.POST.get("instance_id")
@@ -81,12 +83,23 @@ def vocabulary_test(request):
         lits_times = []
         total_time_minutes = 0
         for item in TotalStudyTimeLog.objects.all().distinct('session_id'):
-            instance_time_entry = TotalStudyTimeLog.objects.filter(session_id=item.session_id, status='entrada').last()
-            instance_time_departure = TotalStudyTimeLog.objects.filter(session_id=item.session_id, status='saida').last()
+            instance_time_entry = TotalStudyTimeLog.objects.filter(
+                session_id=item.session_id, user=request.user, status='on').last()
+            instance_time_departure = TotalStudyTimeLog.objects.filter(
+                session_id=item.session_id, user=request.user, status='off').last()
             if instance_time_departure:
                 time_diff = instance_time_departure.login_time - instance_time_entry.login_time
                 lits_times.append(time_diff.seconds)
-        total_time_minutes = sum(lits_times) // 60
+
+        last_time_entry = TotalStudyTimeLog.objects.filter(
+            session_id=request.session.session_key, 
+            status='on'
+        ).last().login_time
+        print(f"last_time_entry: {last_time_entry}")
+        now = timezone.now() - timedelta(hours=3)
+        logged_time = (now - last_time_entry).seconds
+        print(f"logged_time: {logged_time}")
+        total_time_minutes = (sum(lits_times) + logged_time) // 60
 
         context = {
             'short_text': short_text,

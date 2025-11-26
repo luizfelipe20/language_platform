@@ -14,6 +14,17 @@ class ChallengesAdmin(admin.ModelAdmin):
         html = [f"<li>{item.term}</li>" for item in obj.tags.all()]
         return format_html(f"<ul>{''.join(html)}</ul>")
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.username == 'admin':
+            return qs.all()
+        return qs.filter(user=request.user)
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.user:  
+            obj.user = request.user
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(HistoryAttempt)
 class HistoryAttemptAdmin(admin.ModelAdmin):

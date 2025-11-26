@@ -157,3 +157,4 @@ class TotalStudyTimeLog(models.Model):
     login_time = models.DateTimeField(null=True, blank=True)
     session_id = models.CharField(max_length=70, null=True, blank=True) 
     status = models.CharField(max_length=50, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

@@ -88,7 +88,6 @@ class ShortTextAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     
-
 @admin.register(TotalStudyTimeLog)
 class TotalStudyTimeLogAdmin(admin.ModelAdmin):
     list_display = ('login_time', 'session_id', 'status')

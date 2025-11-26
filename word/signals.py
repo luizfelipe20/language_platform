@@ -10,7 +10,8 @@ def save_entry_time(sender, request, user, **kwargs):
     TotalStudyTimeLog.objects.create(**{
         'login_time': timezone.now() - timedelta(hours=3),
         'session_id': request.session.session_key,
-        'status':  'entrada'
+        'status':  'on',
+        'user': request.user
     })
 
 @receiver(user_logged_out)
@@ -19,6 +20,7 @@ def save_departure_time(sender, request, user, **kwargs):
         TotalStudyTimeLog.objects.create(**{
             'login_time': timezone.now() - timedelta(hours=3),
             'session_id': request.session.session_key,
-            'status':  'saida'
+            'status':  'off',
+            'user': request.user
         })
 

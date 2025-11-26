@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.contrib.auth.models import User
 from word.models import Tag, Term, TypePartSpeechChoices
 
 
@@ -13,6 +14,7 @@ class Challenge(models.Model):
     phonetic_transcription = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     number_of_correct_answers = models.PositiveIntegerField(default=10)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
