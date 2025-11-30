@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-4z@u#8=8%p3$1!m)1g7$y!l4v&rc%2$g9e%u@bq^!f$0j0@qv*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG_PROD")
+DEBUG = os.environ.get("DEBUG_PROD") in (False, 'False', 'false', '0', 0, None, 'None', '')
 print(f"DEBUG: {DEBUG} - {type(DEBUG)}")
 
 ALLOWED_HOSTS = [
@@ -76,7 +76,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'language_platform.wsgi.application'
 
-if DEBUG in (False, 'False', 'false', '0', 0, None, 'None', ''):
+if DEBUG:
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
