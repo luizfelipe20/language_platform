@@ -4,7 +4,8 @@ from word.models import (
     ShortText,
     TotalStudyTimeLog,
     Term,
-    Tag
+    Tag,
+    format_names_for_tags
 )
 from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilterBuilder
@@ -68,11 +69,18 @@ class ShortTextAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'created_at', 'updated_at')
     filter_horizontal = ('tags', )
     def get_form(self, request, obj=None, **kwargs):
+        if obj: 
+            if len(obj.tags.all()) == 0:
+                tag_name = format_names_for_tags(obj.title)
+                tag_obj = Tag.objects.get(term=tag_name)
+                ShortText.objects.get(id=obj.id).tags.set([tag_obj])
+        
         form = super().get_form(request, obj, **kwargs)
         if obj is None:
             form.base_fields['instruction_ia'].initial = """
-            Based on the text above, generate twelve multiple-choice questions where only one option is correct, 
-            and return the result in JSON format, The JSON file must contain the keys: "question", "options", "correct_answer".
+            Acting as an English teacher assessing a student's comprehension of the text above, generate twelve multiple-choice 
+            questions where only one option is correct, and return the result in JSON format. The JSON file must contain the keys: 
+            "question", "options", "correct_answer".
             """    
         return form
     

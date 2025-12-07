@@ -76,18 +76,23 @@ class ShortText(models.Model):
     def transcription_into_portuguese(self):
         _request_gpt = f"""
         {self.text}
-        Which phonetic transcription of the text above is the most common in the Portuguese language?
+        Break the above text into sentences in the following format
+        <p><b>phrase in English</b><br>
+        <i>how the sentence would be pronounced in Portuguese</i></p>
         """
         self.phonetic_transcription_portuguese = sentence_generator(_request_gpt)
     
+    def tag_creation(self):
+        Tag.objects.get_or_create(term=format_names_for_tags(self.title))
+        
     def question_generator(self):
         _request_gpt = f"""
         {self.text}
         {self.instruction_ia}
         """
         
-        tag_obj, _ = Tag.objects.get_or_create(term=format_names_for_tags(self.title))
-        self.tags.set([tag_obj])
+        tag_name = format_names_for_tags(self.title)
+        tag_obj = Tag.objects.get(term=tag_name)
         
         _result_gpt = sentence_generator(_request_gpt)
         json_str = re.search(r'\{.*\}', _result_gpt, re.DOTALL).group()
@@ -107,17 +112,20 @@ class ShortText(models.Model):
                     "language": TypePartSpeechChoices.PORTUGUESE, 
                 })
         
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):        
         if not self.audio:
             self.audio_generator()
         if not self.translation:
             self.translator()
-        # if not self.phonetic_transcription_portuguese:
-        #     self.transcription_into_portuguese()
+        if not self.phonetic_transcription_portuguese:
+            self.transcription_into_portuguese()
+        if not self.tags:
+            self.tag_creation()
+        
         super().save(*args, **kwargs)
         if Term.objects.filter(reference__id=self.id).count() < 12:
            self.question_generator() 
-           
+                   
 
 class Term(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
