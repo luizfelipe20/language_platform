@@ -73,58 +73,17 @@ class ShortText(models.Model):
         """
         self.translation = sentence_generator(_request_gpt)
     
-    def transcription_into_portuguese(self):
-        _request_gpt = f"""
-        {self.text}
-        Break the above text into sentences in the following format
-        <p><b>phrase in English</b><br>
-        <i>how the sentence would be pronounced in Portuguese</i></p>
-        """
-        self.phonetic_transcription_portuguese = sentence_generator(_request_gpt)
-    
     def tag_creation(self):
         Tag.objects.get_or_create(term=format_names_for_tags(self.title))
-        
-    def question_generator(self):
-        _request_gpt = f"""
-        {self.text}
-        {self.instruction_ia}
-        """
-        
-        tag_name = format_names_for_tags(self.title)
-        tag_obj = Tag.objects.get(term=tag_name)
-        
-        _result_gpt = sentence_generator(_request_gpt)
-        json_str = re.search(r'\{.*\}', _result_gpt, re.DOTALL).group()
-        elems = json.loads(json_str)['questions']
-        for obj_chat_gpt in elems:
-            sentence_obj, _ = Term.objects.get_or_create(**{
-                "text": obj_chat_gpt['question'],
-                "reference": ShortText.objects.get(id=self.id),
-                "language": TypePartSpeechChoices.ENGLISH, 
-            })
-            sentence_obj.tags.set([tag_obj])
-            for option in obj_chat_gpt['options']:
-                Option.objects.get_or_create(**{
-                    "term": option,
-                    "right_option": option in obj_chat_gpt['correct_answer'],
-                    "reference": sentence_obj,
-                    "language": TypePartSpeechChoices.PORTUGUESE, 
-                })
-        
+                
     def save(self, *args, **kwargs):        
         if not self.audio:
             self.audio_generator()
         if not self.translation:
             self.translator()
-        if not self.phonetic_transcription_portuguese:
-            self.transcription_into_portuguese()
-        if not self.tags:
-            self.tag_creation()
-        
+        if not len(self.tags.all()):
+            self.tag_creation()        
         super().save(*args, **kwargs)
-        if Term.objects.filter(reference__id=self.id).count() < 12:
-           self.question_generator() 
                    
 
 class Term(models.Model):

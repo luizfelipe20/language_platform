@@ -1,10 +1,14 @@
+import re
+import json
 from django.contrib import admin
+from memorization.gpt_api import sentence_generator
 from word.models import (
     Option,
     ShortText,
     TotalStudyTimeLog,
     Term,
     Tag,
+    TypePartSpeechChoices,
     format_names_for_tags
 )
 from django.utils.html import format_html
@@ -68,13 +72,55 @@ class TagAdmin(admin.ModelAdmin):
 class ShortTextAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'created_at', 'updated_at')
     filter_horizontal = ('tags', )
+    
+    def transcription_into_portuguese(self, obj):
+        _request_gpt = f"""
+        {obj.text}
+        Break the above text into sentences in the following format
+        <p><b>phrase in English</b><br>
+        <i>Write how the phrase would be pronounced in Portuguese.</i></p>
+        """
+        ShortText.objects.filter(id=obj.id).update(phonetic_transcription_portuguese=sentence_generator(_request_gpt))
+    
+    def question_generator(self, obj, tag_obj):
+        _request_gpt = f"""
+        {obj.text}
+        {obj.instruction_ia}
+        """        
+        _result_gpt = sentence_generator(_request_gpt)
+        json_str = re.search(r'\{.*\}', _result_gpt, re.DOTALL).group()
+        elems = json.loads(json_str)['questions']
+        for obj_chat_gpt in elems:
+            sentence_obj, _ = Term.objects.get_or_create(**{
+                "text": obj_chat_gpt['question'],
+                "reference": ShortText.objects.get(id=obj.id),
+                "language": TypePartSpeechChoices.ENGLISH, 
+            })
+            sentence_obj.tags.set([tag_obj])
+            
+            for option in obj_chat_gpt['options']:
+                Option.objects.get_or_create(**{
+                    "term": option,
+                    "right_option": option in obj_chat_gpt['correct_answer'],
+                    "reference": sentence_obj,
+                    "language": TypePartSpeechChoices.PORTUGUESE, 
+                })
+                
     def get_form(self, request, obj=None, **kwargs):
         if obj: 
+            short_text = ShortText.objects.get(id=obj.id)
+            tag_name = format_names_for_tags(obj.title)
+            tag_obj = Tag.objects.get(term=tag_name)
+            
             if len(obj.tags.all()) == 0:
-                tag_name = format_names_for_tags(obj.title)
-                tag_obj = Tag.objects.get(term=tag_name)
-                ShortText.objects.get(id=obj.id).tags.set([tag_obj])
-        
+                short_text.tags.set([tag_obj])
+            
+            if not obj.phonetic_transcription_portuguese:
+                self.transcription_into_portuguese(obj)
+            
+            if Term.objects.filter(reference__id=obj.id).count() < 12:
+                self.question_generator(obj, tag_obj)
+                
         form = super().get_form(request, obj, **kwargs)
         if obj is None:
             form.base_fields['instruction_ia'].initial = """
