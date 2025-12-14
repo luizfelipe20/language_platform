@@ -40,12 +40,14 @@ class Tag(models.Model):
 class ShortText(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200, null=True, blank=True)
+    is_manual = models.BooleanField(default=False)
     text = RichTextField()
     translation = RichTextField(null=True, blank=True)
     phonetic_transcription_portuguese = RichTextField(null=True, blank=True)
     instruction_ia = RichTextField(null=True, blank=True)
     audio = models.FileField(upload_to='audios/', null=True, blank=True) 
     tags = models.ManyToManyField(Tag, related_name='short_texts_word_tags', null=True, blank=True)
+    questions = models.TextField(null=True, blank=True)
     language = models.CharField(max_length=50, choices=TypePartSpeechChoices.choices, default=TypePartSpeechChoices.ENGLISH)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -73,17 +75,43 @@ class ShortText(models.Model):
         """
         self.translation = sentence_generator(_request_gpt)
     
-    def tag_creation(self):
-        Tag.objects.get_or_create(term=format_names_for_tags(self.title))
-                
-    def save(self, *args, **kwargs):        
-        if not self.audio:
-            self.audio_generator()
-        if not self.translation:
-            self.translator()
+    def tag_creation(self, name):
+        Tag.objects.get_or_create(term=name)
+    
+    def question_generator(self, tag_name):
+        elems = json.loads(self.questions)
+        for obj in elems:
+            sentence_obj, _ = Term.objects.get_or_create(**{
+                "text": obj['question'],
+                "reference": ShortText.objects.get(id=self.id),
+                "language": TypePartSpeechChoices.ENGLISH, 
+            })
+            sentence_obj.tags.set([Tag.objects.get(term=tag_name)])
+            
+            for option in obj['options']:
+                Option.objects.get_or_create(**{
+                    "term": option,
+                    "right_option": option in obj['correct_answer'],
+                    "reference": sentence_obj,
+                    "language": TypePartSpeechChoices.PORTUGUESE, 
+                })
+                            
+    def save(self, *args, **kwargs):  
+        tag_name = format_names_for_tags(self.title)
         if not len(self.tags.all()):
-            self.tag_creation()        
+            self.tag_creation(tag_name)
+                
+        if not self.is_manual:      
+            if not self.audio:
+                self.audio_generator()
+            if not self.translation:
+                self.translator()    
+        
         super().save(*args, **kwargs)
+        
+        if self.questions:
+            if Term.objects.filter(reference__id=self.id).count() < 12:
+                self.question_generator(tag_name)
                    
 
 class Term(models.Model):

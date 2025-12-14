@@ -72,6 +72,7 @@ class TagAdmin(admin.ModelAdmin):
 class ShortTextAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'created_at', 'updated_at')
     filter_horizontal = ('tags', )
+    ordering = ('-created_at',)
     
     def transcription_into_portuguese(self, obj):
         _request_gpt = f"""
@@ -109,18 +110,19 @@ class ShortTextAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         if obj: 
             short_text = ShortText.objects.get(id=obj.id)
-            tag_name = format_names_for_tags(obj.title)
-            tag_obj = Tag.objects.get(term=tag_name)
-            
+
             if len(obj.tags.all()) == 0:
+                tag_name = format_names_for_tags(obj.title)
+                tag_obj = Tag.objects.get(term=tag_name)
                 short_text.tags.set([tag_obj])
-            
-            if not obj.phonetic_transcription_portuguese:
-                self.transcription_into_portuguese(obj)
-            
-            if Term.objects.filter(reference__id=obj.id).count() < 12:
-                self.question_generator(obj, tag_obj)
+                    
+            if not obj.is_manual:
+                if not obj.phonetic_transcription_portuguese:
+                    self.transcription_into_portuguese(obj)
                 
+                if Term.objects.filter(reference__id=obj.id).count() < 12:
+                    self.question_generator(obj, tag_obj)
+                                    
         form = super().get_form(request, obj, **kwargs)
         if obj is None:
             form.base_fields['instruction_ia'].initial = """
