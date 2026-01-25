@@ -3,6 +3,7 @@ import re
 import json
 import uuid
 from datetime import timedelta
+from django.db import transaction
 from django.contrib.auth.models import User
 from openai import OpenAI
 from django.db import models
@@ -80,21 +81,46 @@ class ShortText(models.Model):
     
     def question_generator(self, tag_name):
         elems = json.loads(self.questions)
+        reference = ShortText.objects.get(id=self.id)
+        tag = Tag.objects.get(term=tag_name)
+
+        term_objs = []
         for obj in elems:
-            sentence_obj, _ = Term.objects.get_or_create(**{
-                "text": obj['question'],
-                "reference": ShortText.objects.get(id=self.id),
-                "language": TypePartSpeechChoices.ENGLISH, 
-            })
-            sentence_obj.tags.set([Tag.objects.get(term=tag_name)])
-            
-            for option in obj['options']:
-                Option.objects.get_or_create(**{
-                    "term": option,
-                    "right_option": option in obj['correct_answer'],
-                    "reference": sentence_obj,
-                    "language": TypePartSpeechChoices.PORTUGUESE, 
-                })
+            term_objs.append(
+                Term(
+                    text=obj["question"],
+                    reference=reference,
+                    language=TypePartSpeechChoices.ENGLISH,
+                )
+            )
+
+        with transaction.atomic():
+            Term.objects.bulk_create(term_objs, ignore_conflicts=True)
+            terms = Term.objects.filter(
+                reference=reference,
+                text__in=[obj["question"] for obj in elems],
+            )
+
+            term_map = {t.text: t for t in terms}
+            for term in term_map.values():
+                term.tags.add(tag)
+                
+            option_objs = []
+
+            for obj in elems:
+                sentence_obj = term_map[obj["question"]]
+
+                for option in obj["options"]:
+                    option_objs.append(
+                        Option(
+                            term=option,
+                            right_option=option in obj["correct_answer"],
+                            reference=sentence_obj,
+                            language=TypePartSpeechChoices.PORTUGUESE,
+                        )
+                    )
+            Option.objects.bulk_create(option_objs, batch_size=1000)
+
                             
     def save(self, *args, **kwargs):  
         tag_name = format_names_for_tags(self.title)
