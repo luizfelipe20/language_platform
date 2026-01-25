@@ -109,7 +109,7 @@ class ShortText(models.Model):
         
         super().save(*args, **kwargs)
         
-        if self.questions:
+        if not self.questions:
             if Term.objects.filter(reference__id=self.id).count() < 12:
                 self.question_generator(tag_name)
                    
