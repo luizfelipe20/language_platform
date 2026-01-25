@@ -95,15 +95,13 @@ class ShortText(models.Model):
             )
 
         with transaction.atomic():
-            Term.objects.bulk_create(term_objs, ignore_conflicts=True)
+            Term.objects.bulk_create(term_objs, ignore_conflicts=True, batch_size=10)
             terms = Term.objects.filter(
                 reference=reference,
                 text__in=[obj["question"] for obj in elems],
             )
 
             term_map = {t.text: t for t in terms}
-            for term in term_map.values():
-                term.tags.add(tag)
                 
             option_objs = []
 
@@ -119,7 +117,7 @@ class ShortText(models.Model):
                             language=TypePartSpeechChoices.PORTUGUESE,
                         )
                     )
-            Option.objects.bulk_create(option_objs, batch_size=1000)
+            Option.objects.bulk_create(option_objs, batch_size=50)
 
                             
     def save(self, *args, **kwargs):  
