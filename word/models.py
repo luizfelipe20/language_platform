@@ -68,12 +68,7 @@ class ShortText(models.Model):
         file_name = f"audio_{self.pk or 'temp'}.mp3"
         audio_data = ContentFile(response.content, name=file_name)
         self.audio.save(file_name, audio_data, save=True)
-    
-    def text_formatter(self):
-        phrases = re.split(r'(?<!\d)\.(?=\s+[A-ZÁÉÍÓÚÃÕ])', self.text)
-        phrases = [f"{item.strip().replace('\r\n', ' ').replace('\n', ' ')}." for item in phrases if item.strip()]
-        self.text = "\n\n".join(phrases)
-            
+                
     def translator(self):
         _request_gpt = f"""
         Translate the following text into Brazilian Portuguese:{self.text}.
@@ -130,7 +125,6 @@ class ShortText(models.Model):
                             
     def save(self, *args, **kwargs):  
         tag_name = format_names_for_tags(self.title)
-        self.text_formatter()
         if not len(self.tags.all()):
             self.tag_creation(tag_name)
                 
