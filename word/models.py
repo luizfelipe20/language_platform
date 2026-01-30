@@ -69,10 +69,17 @@ class ShortText(models.Model):
         audio_data = ContentFile(response.content, name=file_name)
         self.audio.save(file_name, audio_data, save=True)
     
+    def replace_period(self, texto):
+        texto = re.sub(r'(\d)\.(\d)', r'\1#\2', texto)
+        texto = re.sub(r'([A-Za-z])\.([A-Za-z])', r'\1#\2',texto)
+        return texto
+    
     def text_formatter(self):
-        phrases = re.split(r'(?<!\d)\.(?=\s+[A-ZÁÉÍÓÚÃÕ])', self.text)
-        phrases = [f"{item.strip().replace('\r\n', ' ').replace('\n', ' ')}." for item in phrases if item.strip()]
-        self.text = "\n\n".join(phrases)
+        _text = self.replace_period(self.text)
+        phrases = _text.split('.')
+        phrases = [f"{item.strip().replace('&nbsp;', '')}." for item in phrases]        
+        phrases = [f"{' '.join(item.split())}" for item in phrases if len(item) > 3]         
+        self.text = "\n\n".join(phrases).replace('#', '.').replace('&.39;', "'")
             
     def translator(self):
         _request_gpt = f"""
