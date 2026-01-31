@@ -71,15 +71,13 @@ class ShortText(models.Model):
     
     def replace_period(self, texto):
         texto = re.sub(r'(\d)\.(\d)', r'\1#\2', texto)
-        texto = re.sub(r'([A-Za-z])\.([A-Za-z])', r'\1#\2',texto)
         return texto
     
     def text_formatter(self):
         _text = self.replace_period(self.text)
         phrases = _text.split('.')
-        phrases = [f"{item.strip().replace('&nbsp;', '')}." for item in phrases]        
-        phrases = [f"{' '.join(item.split())}" for item in phrases if len(item) > 3]         
-        self.text = "\n\n".join(phrases).replace('#', '.').replace('&.39;', "'")
+        phrases = [f"{item.strip()}" for item in phrases]        
+        self.text = "\n\n".join(phrases)
             
     def translator(self):
         _request_gpt = f"""

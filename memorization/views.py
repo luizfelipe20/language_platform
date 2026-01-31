@@ -1,3 +1,4 @@
+import re
 import os
 import random
 from django.utils import timezone
@@ -29,6 +30,9 @@ def logged_in_time_period(request):
     logged_time = (now - last_time_entry).seconds
     _total_time_minutes = (sum(lits_times) + logged_time) // 60
     return _total_time_minutes
+
+def remover_pre(texto):
+    return re.sub(r'</?pre[^>]*>', '', texto, flags=re.IGNORECASE)
 
 def vocabulary_test(request):
     challenge = Challenge.objects.filter(user=request.user, is_active=True).last()
@@ -99,8 +103,8 @@ def vocabulary_test(request):
         elem = options[num]
                 
         options = list(elem.option_set.all().values('id', 'term').order_by('?'))
-        
         total_time_minutes = logged_in_time_period(request)
+        # short_text = short_text.replace("<pre>", "<pre class='text-wrap text-break'>")        
         context = {
             'short_text': short_text,
             'short_text_audio': short_text_audio,
