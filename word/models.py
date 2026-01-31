@@ -40,6 +40,7 @@ class Tag(models.Model):
 
 class ShortText(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    youtube_link = models.CharField(max_length=200, null=True, blank=True)
     title = models.CharField(max_length=200, null=True, blank=True)
     is_manual = models.BooleanField(default=False)
     text = RichTextField()
