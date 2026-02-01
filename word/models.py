@@ -70,9 +70,10 @@ class ShortText(models.Model):
         audio_data = ContentFile(response.content, name=file_name)
         self.audio.save(file_name, audio_data, save=True)
     
-    def replace_period(self, texto):
-        texto = re.sub(r'(\d)\.(\d)', r'\1#\2', texto)
-        return texto
+    def replace_period(self, _text):
+        _text = re.sub(r'(\d)\.(\d)', r'\1#\2', _text)
+        _text = re.sub(r'([A-Za-z])\.([A-Za-z])', r'\1#\2',_text)
+        return _text
     
     def text_formatter(self):
         _text = self.replace_period(self.text)

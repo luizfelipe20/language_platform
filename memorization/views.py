@@ -2,6 +2,7 @@ import re
 import os
 import random
 from django.utils import timezone
+from django.db.models import Count
 from datetime import timedelta
 from memorization.models import Challenge, HistoryAttempt, ChallengesCompleted
 from word.models import Term, ShortText, TotalStudyTimeLog
@@ -38,8 +39,8 @@ def vocabulary_test(request):
     challenge = Challenge.objects.filter(user=request.user, is_active=True).last()
     
     if request.method == 'POST':                     
-        instance_id = request.POST.get("instance_id")
-        instance = Term.objects.get(id=instance_id)            
+        sentence_id = request.POST.get("sentence_id")
+        instance = Term.objects.get(id=sentence_id)            
                 
         answer_option_form = request.POST.get('answer_option')
         answer_option = instance.option_set.filter(right_option=True).last()
@@ -104,13 +105,20 @@ def vocabulary_test(request):
                 
         options = list(elem.option_set.all().values('id', 'term').order_by('?'))
         total_time_minutes = logged_in_time_period(request)
-        # short_text = short_text.replace("<pre>", "<pre class='text-wrap text-break'>")        
+
+        number_correct_answers = HistoryAttempt.objects.filter(
+            got_it_right=True
+        ).values('reference', 'challenge').annotate(total=Count('id')).filter(
+            total=challenge.number_of_correct_answers
+        ).count()
+        
         context = {
             'short_text': short_text,
+            'number_correct_answers': number_correct_answers,
             'short_text_audio': short_text_audio,
             'short_text_translation': short_text_translation,
             'short_text_phonetic_transcription': short_text_phonetic_transcription,
-            'instance_id': elem.id,
+            'sentence_id': elem.id,
             'sentence': elem.text,
             'options': options,
             'minutes': total_time_minutes,

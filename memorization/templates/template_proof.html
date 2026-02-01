@@ -23,7 +23,7 @@
 
     <!-- AUDIO ------------------------------------------------------>
     {% if short_text_audio %}
-    <h4 class="fw-bold mb-3">Audio</h4>
+    <h4 class="fw-bold mb-3">NUMBER OF CORRECT ANSWERS: {{number_correct_answers}}</h4>
 
     <audio id="meuAudio" controls preload="metadata" class="w-100 rounded mb-2">
       <source src="{{short_text_audio}}" type="audio/mpeg" />
@@ -120,7 +120,7 @@
       {% endfor %}
     </div>
 
-    <input type="hidden" name="instance_id" value="{{instance_id}}">
+    <input type="hidden" name="sentence_id" value="{{sentence_id}}">
 
     <!-- SUBMIT ----------------------------------------------------->
     <button type="submit" class="btn btn-lg btn-primary w-100 rounded-4 fw-bold shadow">
