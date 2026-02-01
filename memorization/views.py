@@ -107,7 +107,8 @@ def vocabulary_test(request):
         total_time_minutes = logged_in_time_period(request)
 
         number_correct_answers = HistoryAttempt.objects.filter(
-            got_it_right=True
+            got_it_right=True,
+            challenge=challenge
         ).values('reference', 'challenge').annotate(total=Count('id')).filter(
             total=challenge.number_of_correct_answers
         ).count()
