@@ -137,7 +137,7 @@ class ShortText(models.Model):
                             
     def save(self, *args, **kwargs):  
         tag_name = format_names_for_tags(self.title)
-        self.text_formatter()
+        # self.text_formatter()
         if not len(self.tags.all()):
             self.tag_creation(tag_name)
                 
